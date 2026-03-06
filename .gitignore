@@ -1,0 +1,55 @@
+## Build directories
+/build/
+/cmake-build*/
+/out/
+/dist/
+
+## CMake generated files (if ever built in-tree)
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+CMakeScripts/
+CTestTestfile.cmake
+Makefile
+*.cmake.tmp
+
+## Compiled objects and binaries
+*.o
+*.obj
+*.lo
+*.la
+*.a
+*.so
+*.dll
+*.dylib
+*.lib
+*.exe
+*.out
+*.app
+
+## Dependency / compiler artifacts
+*.d
+*.gcno
+*.gcda
+*.gcov
+
+## Logs and temporary files
+*.log
+*.tmp
+*.bak
+*.old
+*.swp
+*.swo
+*~
+
+## IDE / editor metadata
+/.vscode/
+/.cursor/
+/.idea/
+/*.code-workspace
+
+## OS-specific junk
+.DS_Store
+Thumbs.db
+ehthumbs.db
+desktop.ini

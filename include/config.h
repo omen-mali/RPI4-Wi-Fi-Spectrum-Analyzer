@@ -22,6 +22,14 @@
  * Build / Platform Guards
  * ========================================================================= */
 
+/**
+ * Application version, injected by CMake from project(VERSION ...).
+ * Builds that bypass CMake (e.g. host-side syntax checks) report "unknown".
+ */
+#ifndef APP_VERSION
+#define APP_VERSION "unknown"
+#endif
+
 #ifndef __QNX__
     #warning "This project targets QNX Neutrino RTOS. Building on other platforms may require stubs."
 #endif
@@ -157,13 +165,36 @@ typedef struct {
 #define SCAN_INTERVAL_SEC   5
 
 /**
- * WPA supplicant control interface socket path.
- * This is the UNIX domain socket used to communicate with wpa_supplicant.
+ * wpa_supplicant control interface.
  *
- * On QNX, the default path depends on the wpa_supplicant configuration.
- * Adjust to match your target's /etc/wpa_supplicant.conf ctrl_interface setting.
+ * wpa_supplicant creates one UNIX domain socket per interface, named after
+ * the interface, inside the ctrl_interface directory:
+ *
+ *     <WPA_CTRL_DIR>/<interface>     e.g. /var/run/wpa_supplicant/bcm0
+ *
+ * On the QNX 8.0 Quick Start image for the RPi4, io-sock loads the
+ * qwdi_dhd_sdio-2_11-rpi4 driver, which names the onboard CYW43455 radio
+ * "bcm0" (Ethernet is "genet0"). The image's wpa_supplicant.conf sets
+ * ctrl_interface=/var/run/wpa_supplicant.
+ *
+ * The interface can be overridden at runtime with "-i <iface>".
  */
-#define WPA_CTRL_IFACE_PATH  "/var/run/wpa_supplicant/wlan0"
+#define WPA_CTRL_DIR          "/var/run/wpa_supplicant"
+#define WIFI_IFACE_DEFAULT    "bcm0"
+
+/** Max interface name length incl. NUL (matches IFNAMSIZ). */
+#define WIFI_IFACE_NAME_MAX   16
+
+/** Max control socket path length incl. NUL (sizeof(sockaddr_un.sun_path)). */
+#define WPA_CTRL_PATH_MAX     104
+
+/**
+ * Default regulatory domain (ISO 3166-1 alpha-2) used to filter which
+ * channels the analyzer may recommend. Override at runtime with "-c <CC>".
+ * Keep it consistent with "country=" in the target's wpa_supplicant.conf,
+ * which controls what the radio itself is allowed to use.
+ */
+#define WIFI_COUNTRY_DEFAULT  "CA"
 
 /**
  * Thread scheduling priorities.

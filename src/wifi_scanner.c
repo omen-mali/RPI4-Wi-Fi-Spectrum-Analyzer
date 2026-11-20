@@ -10,7 +10,7 @@
  * KEY wpa_ctrl API REFERENCE (QNX SDP 8.0)
  * =========================================================================
  *
- *   #include <wpa_ctrl.h>
+ *   #include <wpa_ctrl-2.11.h>   (versioned name in the QNX SDP)
  *
  *   struct wpa_ctrl *wpa_ctrl_open(const char *ctrl_path);
  *     - Opens a connection to wpa_supplicant's UNIX domain socket.
@@ -65,6 +65,7 @@
 #include "wifi_scanner.h"
 #include "logger.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <errno.h>
@@ -72,14 +73,19 @@
 #include <pthread.h>
 
 /*
- * Include the wpa_ctrl header from QNX SDP.
- * If building on a non-QNX host for syntax checking, you'll need a stub
- * header. See README.md for details.
+ * On QNX, use the SDP's own header from the "WPA2/WPA3/IEEE 802.1X Supplicant
+ * 2.11 for use with io-sock" package. It's installed versioned, as
+ * $QNX_TARGET/usr/include/wpa_ctrl-2.11.h (there's no plain wpa_ctrl.h), and
+ * must match libwpactrl-2.11 (see WPA_SUPPLICANT_VERSION in CMakeLists.txt).
+ * It declares QNX-only API (e.g. wpa_ctrl_set_cmd_timeout()) that upstream
+ * hostap headers lack, so don't substitute one.
+ *
+ * Non-QNX host builds (syntax checks, parser tests) get these prototypes
+ * only and must link stub implementations.
  */
 #ifdef __QNX__
-#include <wpa_ctrl.h>
+#include <wpa_ctrl-2.11.h>
 #else
-/* Stub wpa_ctrl.h provided for non-QNX host-side compilation/IDE support. */
 struct wpa_ctrl;
 struct wpa_ctrl *wpa_ctrl_open(const char *ctrl_path);
 void             wpa_ctrl_close(struct wpa_ctrl *ctrl);
@@ -94,8 +100,19 @@ int              wpa_ctrl_recv(struct wpa_ctrl *ctrl,
                                char *reply, size_t *reply_len);
 #endif
 
-/** Maximum reply buffer size for wpa_ctrl_request(). */
-#define WPA_REPLY_BUF_SIZE  4096
+/**
+ * Reply buffer size for wpa_ctrl_request().
+ *
+ * wpa_supplicant builds most control replies, SCAN_RESULTS included, in a
+ * fixed 4096-byte buffer and silently stops adding rows when it is full
+ * (roughly 50-60 APs). A larger client buffer does not help. We keep 4096 and
+ * detect a full reply so truncation shows up in the log instead of skewing
+ * the analysis without warning.
+ */
+#define WPA_REPLY_BUF_SIZE        4096
+
+/** A reply this close to the server's 4096-byte cap is assumed truncated. */
+#define WPA_REPLY_TRUNC_THRESHOLD (WPA_REPLY_BUF_SIZE - 128)
 
 /* =========================================================================
  * Scanner Context (opaque struct defined in header)
@@ -105,9 +122,18 @@ struct wifi_scanner {
     struct wpa_ctrl  *ctrl_conn;      /**< Command connection to wpa_supplicant */
     struct wpa_ctrl  *monitor_conn;   /**< Event monitoring connection */
 
+    char              ctrl_path[WPA_CTRL_PATH_MAX]; /**< Control socket path */
+
     scan_buffer_t    *shared_buffer;  /**< Pointer to shared scan results */
     pthread_mutex_t  *buffer_mutex;   /**< Mutex protecting shared_buffer */
     pthread_cond_t   *buffer_cond;    /**< Condition var for new-data signal */
+
+    /**
+     * Private staging area. Results are parsed here without holding the
+     * mutex, then copied into shared_buffer under it, which keeps the
+     * critical section (and any priority-inheritance boost) short.
+     */
+    scan_result_t     staging[MAX_SCAN_RESULTS];
 
     volatile int      running;        /**< Flag to control the scan loop */
 };
@@ -163,63 +189,107 @@ static wifi_band_t freq_to_band(uint16_t freq_mhz)
  * ========================================================================= */
 
 /**
+ * @brief Split off the next delimiter-separated field, in place.
+ *
+ * Unlike strtok_r(), this keeps empty fields: "a\t\tb" yields "a", "", "b".
+ * That matters for SCAN_RESULTS, where hidden networks leave the SSID column
+ * empty (the line ends in "\t"). strtok_r() would collapse that and return
+ * NULL for the SSID.
+ *
+ * @param cursor  In/out: start of the remaining text; advanced past the
+ *                delimiter, or set to NULL once the last field is returned.
+ * @param delim   Field delimiter character.
+ * @return The field (NUL-terminated in place), or NULL if no field remains.
+ */
+static char *next_field(char **cursor, char delim)
+{
+    char *start = *cursor;
+    char *end;
+
+    if (start == NULL) {
+        return NULL;
+    }
+
+    end = strchr(start, delim);
+    if (end) {
+        *end = '\0';
+        *cursor = end + 1;
+    } else {
+        *cursor = NULL;
+    }
+    return start;
+}
+
+/**
  * @brief Parse the text response from a SCAN_RESULTS command into
  *        structured scan_result_t entries.
  *
- * Suggested approach:
- *   1. Tokenize the response line-by-line using strtok_r() with "\n".
- *   2. Skip the first line (header).
- *   3. For each subsequent line, tokenize by "\t" to extract fields.
- *   4. Convert frequency string to uint16_t (strtoul or atoi).
- *   5. Convert signal level string to int8_t (atoi).
- *   6. Use freq_to_channel() and freq_to_band() to populate derived fields.
- *   7. Copy BSSID and SSID with strncpy (always null-terminate!).
- *   8. Stop when MAX_SCAN_RESULTS is reached.
+ * The response is tokenized IN PLACE (it is modified), so no allocation
+ * happens on this real-time path. Lines that are missing the bssid,
+ * frequency or signal field, or have an unparseable frequency, are skipped.
+ * An empty or missing SSID (hidden network) gives an empty string.
  *
- * Best practices:
- *   - Use strtok_r() (reentrant) instead of strtok() for thread safety.
- *   - Validate each field before conversion to avoid crashes on malformed data.
- *   - Do NOT use dynamic memory allocation here (real-time path).
- *
- * @param response     The raw text response from SCAN_RESULTS.
+ * @param response     Mutable SCAN_RESULTS text (header line + rows).
  * @param results      Output array of scan_result_t entries.
  * @param max_results  Maximum number of entries to write.
  * @return Number of entries successfully parsed.
  */
-static size_t parse_scan_results(const char *response,
+static size_t parse_scan_results(char *response,
                                  scan_result_t *results,
                                  size_t max_results)
 {
-    char *line_ctx = NULL;
-    char *copy = strdup(response);
-    char *line = strtok_r(copy, "\n", &line_ctx);
-
-    if (line) {
-        line = strtok_r(NULL, "\n", &line_ctx);
-    }
-
+    char  *cursor = response;
+    char  *line;
     size_t count = 0;
-    
-    while (line != NULL && count < max_results) {
-        char *field_ctx = NULL;
-        char *bssid = strtok_r(line, "\t", &field_ctx);
-        char *freq = strtok_r(NULL, "\t", &field_ctx);
-        char *level = strtok_r(NULL, "\t", &field_ctx);
-        char *flags = strtok_r(NULL, "\t", &field_ctx);
-        char *ssid = strtok_r(NULL, "\t", &field_ctx);
 
-        if (bssid && freq && level) {
-            snprintf(results[count].bssid, sizeof(results[count].bssid), "%s", bssid);
-            results[count].freq_mhz = strtoul(freq, NULL, 10);
-            results[count].signal_dbm = strtol(level, NULL, 10);
-            results[count].channel = freq_to_channel(results[count].freq_mhz);
-            results[count].band = freq_to_band(results[count].freq_mhz);
-            strncpy(results[count].ssid, ssid, MAX_SSID_LEN);
+    /* Skip the header line ("bssid / frequency / signal level / ..."). */
+    (void)next_field(&cursor, '\n');
 
-            count++;
+    while (count < max_results && (line = next_field(&cursor, '\n')) != NULL) {
+        char *field_cursor = line;
+        char *bssid = next_field(&field_cursor, '\t');
+        char *freq  = next_field(&field_cursor, '\t');
+        char *level = next_field(&field_cursor, '\t');
+        char *flags = next_field(&field_cursor, '\t');
+        char *ssid  = next_field(&field_cursor, '\t');
+        char *endp;
+        unsigned long freq_val;
+        long          level_val;
+        scan_result_t *r;
+
+        (void)flags;
+
+        if (!bssid || !freq || !level || bssid[0] == '\0') {
+            continue;   /* blank or malformed line */
         }
 
-        line = strtok_r(NULL, "\n", &line_ctx);
+        freq_val = strtoul(freq, &endp, 10);
+        if (endp == freq || freq_val == 0 || freq_val > UINT16_MAX) {
+            LOG_WRN("Skipping scan row with bad frequency '%s'", freq);
+            continue;
+        }
+
+        level_val = strtol(level, &endp, 10);
+        if (endp == level) {
+            LOG_WRN("Skipping scan row with bad signal level '%s'", level);
+            continue;
+        }
+        if (level_val < INT8_MIN) level_val = INT8_MIN;
+        if (level_val > INT8_MAX) level_val = INT8_MAX;
+
+        r = &results[count];
+        snprintf(r->bssid, sizeof(r->bssid), "%s", bssid);
+        snprintf(r->ssid,  sizeof(r->ssid),  "%s", ssid ? ssid : "");
+        r->freq_mhz   = (uint16_t)freq_val;
+        r->signal_dbm = (int8_t)level_val;
+        r->channel    = freq_to_channel(r->freq_mhz);
+        r->band       = freq_to_band(r->freq_mhz);
+
+        count++;
+    }
+
+    if (count == max_results && cursor != NULL && *cursor != '\0') {
+        LOG_WRN("More than %zu scan results; extra entries dropped", max_results);
     }
 
     return count;
@@ -292,9 +362,10 @@ static int reattach_monitor(wifi_scanner_t *scanner)
         scanner->monitor_conn = NULL;
     }
 
-    scanner->monitor_conn = wpa_ctrl_open(WPA_CTRL_IFACE_PATH);
+    scanner->monitor_conn = wpa_ctrl_open(scanner->ctrl_path);
     if (!scanner->monitor_conn) {
-        LOG_ERR("wpa_ctrl_open failed during re-attach: %s", strerror(errno));
+        LOG_ERR("wpa_ctrl_open(%s) failed during re-attach: %s",
+                scanner->ctrl_path, strerror(errno));
         return -1;
     }
 
@@ -420,13 +491,20 @@ static int wait_for_scan_complete(wifi_scanner_t *scanner)
  * Public API Implementation
  * ========================================================================= */
 
-wifi_scanner_t *wifi_scanner_init(scan_buffer_t *shared_buffer,
+wifi_scanner_t *wifi_scanner_init(const char *ctrl_path,
+                                  scan_buffer_t *shared_buffer,
                                   pthread_mutex_t *buffer_mutex,
                                   pthread_cond_t *buffer_cond)
 {
     wifi_scanner_t *scanner;
 
-    LOG_INF("Initializing Wi-Fi scanner (ctrl_path=%s)", WPA_CTRL_IFACE_PATH);
+    if (!ctrl_path || ctrl_path[0] == '\0' ||
+        strlen(ctrl_path) >= WPA_CTRL_PATH_MAX) {
+        LOG_ERR("Invalid wpa_supplicant control socket path");
+        return NULL;
+    }
+
+    LOG_INF("Initializing Wi-Fi scanner (ctrl_path=%s)", ctrl_path);
 
     /*
      * Allocate the scanner context.
@@ -442,20 +520,27 @@ wifi_scanner_t *wifi_scanner_init(scan_buffer_t *shared_buffer,
         return NULL;
     }
 
+    snprintf(scanner->ctrl_path, sizeof(scanner->ctrl_path), "%s", ctrl_path);
     scanner->shared_buffer = shared_buffer;
     scanner->buffer_mutex  = buffer_mutex;
     scanner->buffer_cond   = buffer_cond;
     scanner->running       = 1;
 
-    scanner->ctrl_conn = wpa_ctrl_open(WPA_CTRL_IFACE_PATH);
+    scanner->ctrl_conn = wpa_ctrl_open(scanner->ctrl_path);
     if (!scanner->ctrl_conn) {
-        LOG_ERR("wpa_ctrl_open failed for control connection: %s",
-                strerror(errno));
+        /*
+         * Common causes on the QNX image:
+         *   ENOENT -- wrong interface name (default bcm0; see -i), or
+         *             wpa_supplicant isn't running on that interface.
+         *   EACCES -- not running as root; the socket is root-only.
+         */
+        LOG_ERR("wpa_ctrl_open(%s) failed for control connection: %s",
+                scanner->ctrl_path, strerror(errno));
         free(scanner);
         return NULL;
     }
 
-    scanner->monitor_conn = wpa_ctrl_open(WPA_CTRL_IFACE_PATH);
+    scanner->monitor_conn = wpa_ctrl_open(scanner->ctrl_path);
     if (!scanner->monitor_conn) {
         LOG_ERR("wpa_ctrl_open failed for monitor connection: %s",
                 strerror(errno));
@@ -492,6 +577,30 @@ wifi_scanner_t *wifi_scanner_init(scan_buffer_t *shared_buffer,
 
     LOG_INF("Wi-Fi scanner initialized successfully");
     return scanner;
+}
+
+int wifi_scanner_get_country(wifi_scanner_t *scanner, char *out, size_t out_len)
+{
+    char   reply[64];
+    size_t reply_len = sizeof(reply) - 1;
+
+    if (!scanner || !out || out_len < 3) {
+        return -1;
+    }
+    if (send_wpa_command(scanner->ctrl_conn, "GET country",
+                         reply, &reply_len) != 0) {
+        return -1;
+    }
+
+    /* Reply is e.g. "CA" (possibly newline-terminated) or "FAIL". */
+    if (reply_len < 2 || strncmp(reply, "FAIL", 4) == 0 ||
+        reply[0] == '\0' || reply[0] == '\n') {
+        return -1;
+    }
+    out[0] = reply[0];
+    out[1] = reply[1];
+    out[2] = '\0';
+    return 0;
 }
 
 void *wifi_scanner_run(void *arg)
@@ -536,16 +645,31 @@ void *wifi_scanner_run(void *arg)
             goto sleep;
         }
 
-        pthread_mutex_lock(scanner->buffer_mutex);
-        {
-            scanner->shared_buffer->count = parse_scan_results(reply, scanner->shared_buffer->entries, MAX_SCAN_RESULTS);
-            struct timespec now;
-            clock_gettime(CLOCK_MONOTONIC, &now);
-            scanner->shared_buffer->timestamp_ns = (uint64_t)now.tv_sec * 1000000000ULL + (uint64_t)now.tv_nsec;
-            LOG_INF("Scan complete: %zu APs found", scanner->shared_buffer->count);
+        if (reply_len >= WPA_REPLY_TRUNC_THRESHOLD) {
+            LOG_WRN("SCAN_RESULTS reply is %zu bytes, near wpa_supplicant's "
+                    "4096-byte cap -- the AP list is probably truncated",
+                    reply_len);
         }
-        pthread_cond_signal(scanner->buffer_cond);
-        pthread_mutex_unlock(scanner->buffer_mutex);
+
+        {
+            /* Parse outside the lock, publish under it. */
+            size_t          count = parse_scan_results(reply, scanner->staging,
+                                                       MAX_SCAN_RESULTS);
+            struct timespec now;
+
+            clock_gettime(CLOCK_MONOTONIC, &now);
+
+            pthread_mutex_lock(scanner->buffer_mutex);
+            memcpy(scanner->shared_buffer->entries, scanner->staging,
+                   count * sizeof(scanner->staging[0]));
+            scanner->shared_buffer->count        = count;
+            scanner->shared_buffer->timestamp_ns =
+                (uint64_t)now.tv_sec * 1000000000ULL + (uint64_t)now.tv_nsec;
+            pthread_cond_signal(scanner->buffer_cond);
+            pthread_mutex_unlock(scanner->buffer_mutex);
+
+            LOG_INF("Scan complete: %zu APs found", count);
+        }
         
         sleep:
         {

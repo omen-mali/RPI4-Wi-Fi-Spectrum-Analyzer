@@ -7,9 +7,10 @@
  * commands and parses results into the shared scan_buffer_t structure.
  *
  * Hardware context:
- *   The Raspberry Pi 4 has an onboard Broadcom BCM43455 Wi-Fi chipset
- *   supporting 2.4 GHz and 5 GHz bands. The QNX BSP provides a driver
- *   for this chipset that integrates with io-pkt and wpa_supplicant.
+ *   The Raspberry Pi 4 has an onboard Cypress/Broadcom CYW43455 Wi-Fi
+ *   chipset supporting 2.4 GHz and 5 GHz bands. On QNX SDP 8.0 it is driven
+ *   by the io-sock driver devs-qwdi_dhd_sdio-2_11-rpi4.so, which exposes the
+ *   interface "bcm0" to wpa_supplicant-2.11.
  *
  * API usage pattern:
  *   1. Call wifi_scanner_init() once at startup.
@@ -17,9 +18,10 @@
  *   3. On shutdown, call wifi_scanner_shutdown() to release resources.
  *
  * Dependencies:
- *   - wpa_supplicant must be running on the target with a configured
- *     ctrl_interface matching WPA_CTRL_IFACE_PATH in config.h.
- *   - Link with: -lwpactrl-2.11 -lsocket
+ *   - wpa_supplicant must be running on the target with ctrl_interface set
+ *     to WPA_CTRL_DIR (config.h). The control socket is owned by root, so
+ *     the process must run as root (e.g. via sudo).
+ *   - Link with: libwpactrl-2.11 (see CMakeLists.txt), -lsocket
  */
 
 #ifndef WIFI_SPECTRUM_SCANNER_H
@@ -44,6 +46,9 @@ typedef struct wifi_scanner wifi_scanner_t;
  *   - Control connection: for sending SCAN / SCAN_RESULTS commands.
  *   - Monitor connection:  for receiving async events (scan completion).
  *
+ * @param ctrl_path      Full path of the wpa_supplicant control socket for
+ *                       the Wi-Fi interface (e.g. "/var/run/wpa_supplicant/bcm0").
+ *                       Copied into the context; must be < WPA_CTRL_PATH_MAX.
  * @param shared_buffer  Pointer to the shared scan results buffer.
  * @param buffer_mutex   Pointer to the mutex protecting shared_buffer.
  * @param buffer_cond    Pointer to the condition variable signaled when
@@ -54,9 +59,23 @@ typedef struct wifi_scanner wifi_scanner_t;
  * Best practice: Call this from the main thread before spawning the
  * scanner thread, so that initialization errors are caught early.
  */
-wifi_scanner_t *wifi_scanner_init(scan_buffer_t *shared_buffer,
+wifi_scanner_t *wifi_scanner_init(const char *ctrl_path,
+                                  scan_buffer_t *shared_buffer,
                                   pthread_mutex_t *buffer_mutex,
                                   pthread_cond_t *buffer_cond);
+
+/**
+ * @brief Query wpa_supplicant's configured regulatory country ("GET country").
+ *
+ * Call from the main thread before the scanner thread starts (it uses the
+ * same control connection).
+ *
+ * @param scanner  Initialized scanner context.
+ * @param out      Receives the two-letter code, NUL-terminated.
+ * @param out_len  Size of out (>= 3).
+ * @return 0 on success, -1 if not set or the query failed.
+ */
+int wifi_scanner_get_country(wifi_scanner_t *scanner, char *out, size_t out_len);
 
 /**
  * @brief Scanner thread entry point -- runs the scan loop.

@@ -1,0 +1,26 @@
+# QNX SDP 8.0 cross-build environment (works with Apple `container` and Docker).
+#
+# QNX SDP host tools (qcc, ntoaarch64-gcc, mkqnximage) ship only for x86-64
+# Linux/Windows, so this image is linux/amd64. On Apple silicon it runs under
+# Rosetta. The SDP itself (~17 GB, licensed) is not baked in, it's
+# bind-mounted at /opt/qnx800, with the license directory (~/.qnx) at
+# /root/.qnx. See scripts/qnx-build.sh.
+#
+#   container build --arch amd64 -t qnx800-build -f docker/Containerfile docker
+#   docker build --platform linux/amd64 -t qnx800-build -f docker/Containerfile docker
+
+FROM --platform=linux/amd64 ubuntu:24.04
+
+ARG DEBIAN_FRONTEND=noninteractive
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends \
+        bash ca-certificates cmake file make ninja-build python3 \
+ && rm -rf /var/lib/apt/lists/*
+
+ENV QNX_SDP=/opt/qnx800
+COPY qnx-entrypoint.sh /usr/local/bin/qnx-entrypoint.sh
+RUN chmod 0755 /usr/local/bin/qnx-entrypoint.sh
+
+WORKDIR /work
+ENTRYPOINT ["/usr/local/bin/qnx-entrypoint.sh"]
+CMD ["bash"]

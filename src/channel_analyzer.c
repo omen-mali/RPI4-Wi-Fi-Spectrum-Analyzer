@@ -164,6 +164,8 @@ static const channel_info_t dfs_channels_5ghz[] = {
  * ========================================================================= */
 
 struct channel_analyzer {
+    const regdomain_t *regdomain;     /**< Country: which channels are legal */
+
     scan_buffer_t   *shared_buffer;   /**< Pointer to shared scan data */
     pthread_mutex_t *buffer_mutex;    /**< Mutex for shared_buffer */
     pthread_cond_t  *buffer_cond;     /**< Condition var for new-data signal */
@@ -180,84 +182,74 @@ struct channel_analyzer {
  * ========================================================================= */
 
 /**
+ * @brief Fill one channel_metric_t from the scan results for that channel.
+ *
+ *   1. Initialize ap_count = 0, signal sum to 0, max_signal to -128.
+ *   2. For each AP whose frequency matches this channel's frequency,
+ *      increment ap_count, accumulate signal for averaging, track max.
+ *   3. Compute avg_signal_dbm = total_signal / ap_count (if ap_count > 0).
+ */
+static void fill_channel_metric(channel_metric_t *metric,
+                                const channel_info_t *info,
+                                const scan_buffer_t *scan_data)
+{
+    int32_t signal_sum = 0;
+
+    metric->channel_number = info->channel_number;
+    metric->freq_mhz       = info->center_freq_mhz;
+    metric->band           = info->band;
+    metric->ap_count       = 0;
+    metric->avg_signal_dbm = 0;
+    metric->max_signal_dbm = -128;
+    metric->score          = 0.0f;
+
+    for (size_t ap = 0; ap < scan_data->count; ap++) {
+        if (scan_data->entries[ap].freq_mhz == info->center_freq_mhz) {
+            metric->ap_count++;
+            signal_sum += scan_data->entries[ap].signal_dbm;
+
+            if (scan_data->entries[ap].signal_dbm > metric->max_signal_dbm) {
+                metric->max_signal_dbm = scan_data->entries[ap].signal_dbm;
+            }
+        }
+    }
+
+    if (metric->ap_count > 0) {
+        metric->avg_signal_dbm = (int8_t)(signal_sum / (int32_t)metric->ap_count);
+    }
+}
+
+/**
  * @brief Aggregate scan results into per-channel metrics.
  *
- * For each known channel (from the channel tables above):
- *   1. Initialize ap_count = 0, signal sums to 0, max_signal to -128.
- *   2. Iterate over scan results.
- *   3. For each AP whose frequency matches this channel's frequency,
- *      increment ap_count, accumulate signal for averaging, track max.
- *   4. Compute avg_signal_dbm = total_signal / ap_count (if ap_count > 0).
+ * Only channels permitted by the regulatory domain are included, so they
+ * are the only candidates find_best_channels() can recommend. APs seen on
+ * non-permitted channels (e.g. a US AP on ch 12) still count toward the
+ * 2.4 GHz overlap penalty, which reads the raw scan data.
  *
- * @param scan_data    The scan results to analyze.
- * @param metrics      Output array of channel_metric_t (pre-allocated).
+ * @param regdomain     Regulatory domain filter.
+ * @param scan_data     The scan results to analyze.
+ * @param metrics       Output array of channel_metric_t (MAX_CHANNELS_TOTAL).
  * @param channel_count Output: number of channels populated.
  */
-static void compute_channel_metrics(const scan_buffer_t *scan_data,
+static void compute_channel_metrics(const regdomain_t *regdomain,
+                                    const scan_buffer_t *scan_data,
                                     channel_metric_t *metrics,
                                     size_t *channel_count)
 {
-    (void)scan_data;
-    (void)metrics;
-    *channel_count = 0;
-
     size_t idx = 0;
 
     for (size_t ch = 0; ch < NUM_CHANNELS_2_4GHZ; ch++) {
-        channel_metric_t *metric = &metrics[idx++];
-
-        metric->channel_number = channels_2_4ghz[ch].channel_number;
-        metric->freq_mhz       = channels_2_4ghz[ch].center_freq_mhz;
-        metric->band            = BAND_2_4_GHZ;
-        metric->ap_count        = 0;
-        metric->avg_signal_dbm  = 0;
-        metric->max_signal_dbm  = -128;
-        metric->score           = 0.0f;
-
-        int32_t signal_sum = 0;
-
-        for (size_t ap = 0; ap < scan_data->count; ap++) {
-            if (scan_data->entries[ap].freq_mhz == channels_2_4ghz[ch].center_freq_mhz) {
-                metric->ap_count++;
-                signal_sum += scan_data->entries[ap].signal_dbm;
-
-                if (scan_data->entries[ap].signal_dbm > metric->max_signal_dbm) {
-                    metric->max_signal_dbm = scan_data->entries[ap].signal_dbm;
-                }
-            }
-        }
-
-        if (metric->ap_count > 0) {
-            metric->avg_signal_dbm = (int8_t)(signal_sum / (int32_t)metric->ap_count);
+        if (regdomain_channel_allowed(regdomain, BAND_2_4_GHZ,
+                                      channels_2_4ghz[ch].channel_number)) {
+            fill_channel_metric(&metrics[idx++], &channels_2_4ghz[ch], scan_data);
         }
     }
 
     for (size_t ch = 0; ch < NUM_CHANNELS_5GHZ; ch++) {
-        channel_metric_t *metric = &metrics[idx++];
-
-        metric->channel_number = channels_5ghz[ch].channel_number;
-        metric->freq_mhz       = channels_5ghz[ch].center_freq_mhz;
-        metric->band            = BAND_5_GHZ;
-        metric->ap_count        = 0;
-        metric->avg_signal_dbm  = 0;
-        metric->max_signal_dbm  = -128;
-        metric->score           = 0.0f;
-
-        int32_t signal_sum = 0;
-
-        for (size_t ap = 0; ap < scan_data->count; ap++) {
-            if (scan_data->entries[ap].freq_mhz == channels_5ghz[ch].center_freq_mhz) {
-                metric->ap_count++;
-                signal_sum += scan_data->entries[ap].signal_dbm;
-
-                if (scan_data->entries[ap].signal_dbm > metric->max_signal_dbm) {
-                    metric->max_signal_dbm = scan_data->entries[ap].signal_dbm;
-                }
-            }
-        }
-
-        if (metric->ap_count > 0) {
-            metric->avg_signal_dbm = (int8_t)(signal_sum / (int32_t)metric->ap_count);
+        if (regdomain_channel_allowed(regdomain, BAND_5_GHZ,
+                                      channels_5ghz[ch].channel_number)) {
+            fill_channel_metric(&metrics[idx++], &channels_5ghz[ch], scan_data);
         }
     }
 
@@ -405,7 +397,8 @@ static void find_best_channels(analysis_result_t *result)
  * Public API Implementation
  * ========================================================================= */
 
-channel_analyzer_t *channel_analyzer_init(scan_buffer_t *shared_buffer,
+channel_analyzer_t *channel_analyzer_init(const regdomain_t *regdomain,
+                                          scan_buffer_t *shared_buffer,
                                           pthread_mutex_t *buffer_mutex,
                                           pthread_cond_t *buffer_cond)
 {
@@ -413,7 +406,8 @@ channel_analyzer_t *channel_analyzer_init(scan_buffer_t *shared_buffer,
     pthread_mutexattr_t attr;
     int rc;
 
-    LOG_INF("Initializing channel analyzer");
+    LOG_INF("Initializing channel analyzer (country=%s)",
+            regdomain_code(regdomain));
 
     analyzer = (channel_analyzer_t *)calloc(1, sizeof(channel_analyzer_t));
     if (!analyzer) {
@@ -421,6 +415,7 @@ channel_analyzer_t *channel_analyzer_init(scan_buffer_t *shared_buffer,
         return NULL;
     }
 
+    analyzer->regdomain     = regdomain;
     analyzer->shared_buffer = shared_buffer;
     analyzer->buffer_mutex  = buffer_mutex;
     analyzer->buffer_cond   = buffer_cond;
@@ -451,27 +446,36 @@ channel_analyzer_t *channel_analyzer_init(scan_buffer_t *shared_buffer,
 void *channel_analyzer_run(void *arg)
 {
     channel_analyzer_t *analyzer = (channel_analyzer_t *)arg;
+    uint64_t last_seen_ts = 0;   /* timestamp_ns of the last scan analyzed */
 
     LOG_INF("Analyzer thread started");
-    
+
     while (analyzer->running) {
 
-        // Wait for new scan data
+        /*
+         * Wait for a NEW scan. The scanner stamps every publish with a
+         * CLOCK_MONOTONIC timestamp (never 0), so "timestamp unchanged"
+         * means "nothing new". A scan that finds 0 APs is still a new
+         * result and gets analyzed.
+         */
         pthread_mutex_lock(analyzer->buffer_mutex);
 
-        while (analyzer->shared_buffer->count == 0 && analyzer->running) {
+        while (analyzer->shared_buffer->timestamp_ns == last_seen_ts &&
+               analyzer->running) {
             pthread_cond_wait(analyzer->buffer_cond, analyzer->buffer_mutex);
         }
 
         // Copy scan data locally (minimize lock hold time)
         scan_buffer_t local_copy;
         memcpy(&local_copy, analyzer->shared_buffer, sizeof(scan_buffer_t));
+        last_seen_ts = local_copy.timestamp_ns;
         pthread_mutex_unlock(analyzer->buffer_mutex);
-        
+
         // Compute metrics
         analysis_result_t result;
         memset(&result, 0, sizeof(result));
-        compute_channel_metrics(&local_copy, result.channels, &result.channel_count);
+        compute_channel_metrics(analyzer->regdomain, &local_copy,
+                                result.channels, &result.channel_count);
         // Score channels
         score_channels(result.channels, result.channel_count, &local_copy);
         find_best_channels(&result);

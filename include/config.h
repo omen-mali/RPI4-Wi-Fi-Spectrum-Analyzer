@@ -239,4 +239,23 @@ typedef enum {
 /** Minimum log level to emit. Messages below this level are suppressed. */
 #define LOG_MIN_LEVEL  LOG_DEBUG
 
+/**
+ * Asynchronous logger (logger.c).
+ *
+ * Callers format the line on their own stack and copy it into a fixed ring
+ * of LOG_RING_ENTRIES slots (LOG_LINE_MAX bytes each, longer lines are
+ * truncated with "..."). A writer thread does all the stderr I/O, so a
+ * real-time thread never blocks on a slow file or terminal (stderr is often
+ * redirected to a file on the SD card). If the ring is full, the newest
+ * message is dropped and counted, and the writer reports the count. Callers
+ * never wait for space.
+ *
+ * The writer runs at LOGGER_WRITER_PRIORITY (SCHED_RR): above default user
+ * load (10) so the log keeps draining, below the scanner (15). Its I/O is
+ * never done under the ring mutex.
+ */
+#define LOG_RING_ENTRIES        256   /* power of two */
+#define LOG_LINE_MAX            512
+#define LOGGER_WRITER_PRIORITY  11
+
 #endif /* WIFI_SPECTRUM_CONFIG_H */

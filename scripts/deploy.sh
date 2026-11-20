@@ -19,6 +19,10 @@ BIN="$BUILD/wifi_spectrum_analyzer"
 
 die() { echo "error: $*" >&2; exit 1; }
 
+# One multiplexed SSH connection (same ControlPath as measure-timing.sh), so a
+# password is asked once and reused by a measurement run started right after.
+CM=(-o ControlMaster=auto -o "ControlPath=$HOME/.ssh/cm-%C" -o ControlPersist=30m)
+
 [ -f "$BIN" ] || die "$BIN not found -- run scripts/qnx-build.sh first"
 
 # Which libwpactrl did CMake link? (cache paths are container paths under /opt/qnx800)
@@ -38,9 +42,9 @@ exec "$here/wifi_spectrum_analyzer" "$@"
 EOF
 
 echo ">> Deploying to $TARGET"
-ssh "$TARGET" 'mkdir -p ~/bin ~/lib'
-scp "$BIN" "$LAUNCHER" "$TARGET:bin/"
-ssh "$TARGET" "mv ~/bin/$(basename "$LAUNCHER") ~/bin/wifi-analyzer && chmod 755 ~/bin/wifi-analyzer ~/bin/wifi_spectrum_analyzer"
+ssh "${CM[@]}" "$TARGET" 'mkdir -p ~/bin ~/lib'
+scp "${CM[@]}" "$BIN" "$LAUNCHER" "$TARGET:bin/"
+ssh "${CM[@]}" "$TARGET" "mv ~/bin/$(basename "$LAUNCHER") ~/bin/wifi-analyzer && chmod 755 ~/bin/wifi-analyzer ~/bin/wifi_spectrum_analyzer"
 
 case "$WPALIB_HOST" in
     *.so*)
@@ -50,7 +54,7 @@ case "$WPALIB_HOST" in
         SONAME_FILE="$LIBDIR/libwpactrl-2.11.so.1"
         [ -f "$SONAME_FILE" ] || die "$SONAME_FILE not found"
         echo ">> Copying $(basename "$SONAME_FILE") to ~/lib"
-        scp "$SONAME_FILE" "$TARGET:lib/"
+        scp "${CM[@]}" "$SONAME_FILE" "$TARGET:lib/"
         ;;
     *.a)
         echo ">> libwpactrl is statically linked; nothing else to copy"

@@ -70,6 +70,7 @@
 #include <string.h>
 #include <errno.h>
 #include <time.h>
+#include <poll.h>
 #include <pthread.h>
 
 /*
@@ -85,6 +86,7 @@
  */
 #ifdef __QNX__
 #include <wpa_ctrl-2.11.h>
+#include <sys/neutrino.h>   /* TimerTimeout(), _NTO_TIMEOUT_NANOSLEEP */
 #else
 struct wpa_ctrl;
 struct wpa_ctrl *wpa_ctrl_open(const char *ctrl_path);
@@ -98,6 +100,7 @@ int              wpa_ctrl_request(struct wpa_ctrl *ctrl,
 int              wpa_ctrl_pending(struct wpa_ctrl *ctrl);
 int              wpa_ctrl_recv(struct wpa_ctrl *ctrl,
                                char *reply, size_t *reply_len);
+int              wpa_ctrl_get_fd(struct wpa_ctrl *ctrl);
 #endif
 
 /**
@@ -135,8 +138,70 @@ struct wifi_scanner {
      */
     scan_result_t     staging[MAX_SCAN_RESULTS];
 
+    uint32_t          period_ms;      /**< Fixed scan period (SCAN request to SCAN request) */
+    uint64_t          cycles;         /**< Completed schedule slots */
+    uint64_t          overruns;       /**< Slots skipped because a cycle ran past its deadline */
+    int64_t           max_lateness_ns; /**< Worst wake-up lateness vs. deadline */
+    uint32_t          wake_tolerance_ns; /**< 0: tick-aligned sleep; else high-res timer */
+
     volatile int      running;        /**< Flag to control the scan loop */
 };
+
+/* =========================================================================
+ * Internal Helpers: CLOCK_MONOTONIC timespec arithmetic
+ * ========================================================================= */
+
+#define NSEC_PER_SEC 1000000000L
+
+static void ts_add_ms(struct timespec *ts, uint32_t ms)
+{
+    ts->tv_sec  += (time_t)(ms / 1000u);
+    ts->tv_nsec += (long)(ms % 1000u) * 1000000L;
+    if (ts->tv_nsec >= NSEC_PER_SEC) {
+        ts->tv_sec  += 1;
+        ts->tv_nsec -= NSEC_PER_SEC;
+    }
+}
+
+/** @return a - b in nanoseconds. */
+static int64_t ts_diff_ns(const struct timespec *a, const struct timespec *b)
+{
+    return (int64_t)(a->tv_sec - b->tv_sec) * NSEC_PER_SEC +
+           (int64_t)(a->tv_nsec - b->tv_nsec);
+}
+
+/**
+ * @brief Sleep until an absolute CLOCK_MONOTONIC deadline.
+ *
+ * tolerance_ns == 0: clock_nanosleep(TIMER_ABSTIME), tick-aligned expiry.
+ * tolerance_ns  > 0: (QNX) high-resolution timer. Set the thread's timeout
+ * tolerance, then block in STATE_NANOSLEEP until the absolute deadline.
+ * Both are cancellation points.
+ *
+ * @return 0 on success, or an errno value (EINTR is returned to the caller).
+ */
+static int sleep_until(const struct timespec *deadline, uint32_t tolerance_ns)
+{
+#ifdef __QNX__
+    if (tolerance_ns > 0) {
+        uint64_t tol    = tolerance_ns;
+        uint64_t abs_ns = (uint64_t)deadline->tv_sec * (uint64_t)NSEC_PER_SEC +
+                          (uint64_t)deadline->tv_nsec;
+
+        if (TimerTimeout(CLOCK_MONOTONIC, TIMER_TOLERANCE, NULL, &tol, NULL) == -1) {
+            return errno;
+        }
+        if (TimerTimeout(CLOCK_MONOTONIC, _NTO_TIMEOUT_NANOSLEEP | TIMER_ABSTIME,
+                         NULL, &abs_ns, NULL) == -1) {
+            return errno;
+        }
+        return 0;
+    }
+#else
+    (void)tolerance_ns;
+#endif
+    return clock_nanosleep(CLOCK_MONOTONIC, (int)TIMER_ABSTIME, deadline, NULL);
+}
 
 /* =========================================================================
  * Internal Helper: Frequency-to-Channel Conversion
@@ -440,18 +505,66 @@ static int drain_pending_events(wifi_scanner_t *scanner)
  *   <3>CTRL-EVENT-SCAN-RESULTS   (success)
  *   <3>CTRL-EVENT-SCAN-FAILED    (driver/firmware error)
  *
+ * Blocks in poll() on the monitor socket (wpa_ctrl_get_fd()), so the thread
+ * sleeps until an event arrives and wakes as soon as it does. The total
+ * wait is bounded by SCAN_COMPLETE_TIMEOUT_MS against an absolute
+ * CLOCK_MONOTONIC deadline, so unrelated events (state changes, BSS
+ * added/removed) don't extend it. poll() is a cancellation point.
+ *
  * @param scanner  Scanner context with the monitor connection.
  * @return 0 if scan-complete event received, -1 on failure/timeout.
  */
 static int wait_for_scan_complete(wifi_scanner_t *scanner)
 {
-    char event_buf[256];
-    size_t event_len;
-    struct timespec poll_interval = { .tv_sec = 0, .tv_nsec = 100000000 };
-    int timeout_iterations = 300;
-    int rc;
+    char            event_buf[256];
+    size_t          event_len;
+    struct timespec deadline;
+    struct timespec now;
+    struct pollfd   pfd;
+    int             rc;
 
-    for (int i = 0; i < timeout_iterations && scanner->running; i++) {
+    pfd.fd     = wpa_ctrl_get_fd(scanner->monitor_conn);
+    pfd.events = POLLIN;
+    if (pfd.fd < 0) {
+        LOG_ERR("wpa_ctrl_get_fd failed on monitor connection");
+        return -1;
+    }
+
+    clock_gettime(CLOCK_MONOTONIC, &deadline);
+    ts_add_ms(&deadline, SCAN_COMPLETE_TIMEOUT_MS);
+
+    while (scanner->running) {
+        int64_t remaining_ns;
+
+        clock_gettime(CLOCK_MONOTONIC, &now);
+        remaining_ns = ts_diff_ns(&deadline, &now);
+        if (remaining_ns <= 0) {
+            break;
+        }
+
+        /* Round up so we never spin on a sub-millisecond remainder. */
+        pfd.revents = 0;
+        rc = poll(&pfd, 1, (int)((remaining_ns + 999999) / 1000000));
+        if (rc < 0) {
+            if (errno == EINTR) {
+                continue;
+            }
+            LOG_ERR("poll on monitor socket failed: %s", strerror(errno));
+            return -1;
+        }
+        if (rc == 0) {
+            break;                              /* timed out */
+        }
+        if (pfd.revents & (POLLERR | POLLHUP | POLLNVAL)) {
+            LOG_ERR("Monitor socket error (revents=0x%x)", (unsigned)pfd.revents);
+            if (reattach_monitor(scanner) != 0) {
+                return -1;
+            }
+            LOG_WRN("Monitor re-attached, but scan event was likely lost");
+            return -1;
+        }
+
+        /* Drain everything that's queued; return on the first verdict. */
         while ((rc = wpa_ctrl_pending(scanner->monitor_conn)) > 0) {
             event_len = sizeof(event_buf) - 1;
             if (wpa_ctrl_recv(scanner->monitor_conn, event_buf, &event_len) != 0) {
@@ -478,12 +591,12 @@ static int wait_for_scan_complete(wifi_scanner_t *scanner)
             LOG_WRN("Monitor re-attached, but scan event was likely lost");
             return -1;
         }
-
-        clock_nanosleep(CLOCK_MONOTONIC, 0, &poll_interval, NULL);
     }
 
-    LOG_WRN("Timed out waiting for scan completion (%d iterations)",
-            timeout_iterations);
+    if (scanner->running) {
+        LOG_WRN("Timed out waiting for scan completion (%d ms)",
+                SCAN_COMPLETE_TIMEOUT_MS);
+    }
     return -1;
 }
 
@@ -492,6 +605,7 @@ static int wait_for_scan_complete(wifi_scanner_t *scanner)
  * ========================================================================= */
 
 wifi_scanner_t *wifi_scanner_init(const char *ctrl_path,
+                                  uint32_t period_ms,
                                   scan_buffer_t *shared_buffer,
                                   pthread_mutex_t *buffer_mutex,
                                   pthread_cond_t *buffer_cond)
@@ -504,7 +618,14 @@ wifi_scanner_t *wifi_scanner_init(const char *ctrl_path,
         return NULL;
     }
 
-    LOG_INF("Initializing Wi-Fi scanner (ctrl_path=%s)", ctrl_path);
+    if (period_ms < SCAN_PERIOD_MS_MIN || period_ms > SCAN_PERIOD_MS_MAX) {
+        LOG_ERR("Scan period %u ms out of range [%u, %u]",
+                period_ms, SCAN_PERIOD_MS_MIN, SCAN_PERIOD_MS_MAX);
+        return NULL;
+    }
+
+    LOG_INF("Initializing Wi-Fi scanner (ctrl_path=%s, period=%u ms)",
+            ctrl_path, period_ms);
 
     /*
      * Allocate the scanner context.
@@ -524,6 +645,7 @@ wifi_scanner_t *wifi_scanner_init(const char *ctrl_path,
     scanner->shared_buffer = shared_buffer;
     scanner->buffer_mutex  = buffer_mutex;
     scanner->buffer_cond   = buffer_cond;
+    scanner->period_ms     = period_ms;
     scanner->running       = 1;
 
     scanner->ctrl_conn = wpa_ctrl_open(scanner->ctrl_path);
@@ -579,6 +701,21 @@ wifi_scanner_t *wifi_scanner_init(const char *ctrl_path,
     return scanner;
 }
 
+int wifi_scanner_set_wake_tolerance(wifi_scanner_t *scanner, uint32_t tolerance_ns)
+{
+    if (!scanner || tolerance_ns > WAKE_TOLERANCE_NS_MAX) {
+        return -1;
+    }
+#ifndef __QNX__
+    if (tolerance_ns > 0) {
+        LOG_WRN("High-resolution wake timer is QNX-only, using clock_nanosleep");
+        tolerance_ns = 0;
+    }
+#endif
+    scanner->wake_tolerance_ns = tolerance_ns;
+    return 0;
+}
+
 int wifi_scanner_get_country(wifi_scanner_t *scanner, char *out, size_t out_len)
 {
     char   reply[64];
@@ -608,8 +745,25 @@ void *wifi_scanner_run(void *arg)
     wifi_scanner_t *scanner = (wifi_scanner_t *)arg;
     char reply[WPA_REPLY_BUF_SIZE];
     size_t reply_len;
+    struct timespec next;   /* absolute start time of the current slot */
 
-    LOG_INF("Scanner thread started");
+    {
+        struct timespec res = { 0, 0 };
+
+        clock_getres(CLOCK_MONOTONIC, &res);
+        LOG_INF("Scanner thread started (fixed-rate, period=%u ms)",
+                scanner->period_ms);
+        if (scanner->wake_tolerance_ns > 0) {
+            LOG_INF("Wake timer: high-resolution, tolerance=%u ns (system tick %ld ns)",
+                    scanner->wake_tolerance_ns, res.tv_nsec);
+        } else {
+            LOG_INF("Wake timer: tick-aligned clock_nanosleep (system tick %ld ns)",
+                    res.tv_nsec);
+        }
+    }
+
+    /* Slot 0 starts now; slot N starts at exactly next + N * period. */
+    clock_gettime(CLOCK_MONOTONIC, &next);
 
     while (scanner->running) {
         if (drain_pending_events(scanner) != 0) {
@@ -673,10 +827,49 @@ void *wifi_scanner_run(void *arg)
         
         sleep:
         {
-            struct timespec next;
-            clock_gettime(CLOCK_MONOTONIC, &next);
-            next.tv_sec += SCAN_INTERVAL_SEC;
-            clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, &next, NULL);
+            struct timespec now;
+            uint32_t        skipped = 0;
+            int             rc;
+            int64_t         lateness_ns;
+
+            /*
+             * Advance the deadline by exactly one period from the previous
+             * deadline (not from "now"), so per-cycle work never shifts the
+             * schedule. If the cycle overran, skip whole slots to stay
+             * phase-aligned instead of firing back-to-back to catch up.
+             */
+            ts_add_ms(&next, scanner->period_ms);
+            scanner->cycles++;
+
+            clock_gettime(CLOCK_MONOTONIC, &now);
+            while (ts_diff_ns(&now, &next) >= 0) {
+                ts_add_ms(&next, scanner->period_ms);
+                skipped++;
+            }
+            if (skipped > 0) {
+                scanner->overruns += skipped;
+                LOG_WRN("Scan cycle overran its %u ms period: skipped %u slot(s) "
+                        "(%llu overrun(s) total)", scanner->period_ms, skipped,
+                        (unsigned long long)scanner->overruns);
+            }
+
+            do {
+                rc = sleep_until(&next, scanner->wake_tolerance_ns);
+            } while (rc == EINTR && scanner->running);
+            if (rc != 0 && rc != EINTR) {
+                LOG_ERR("Schedule sleep failed: %s -- falling back to "
+                        "tick-aligned clock_nanosleep", strerror(rc));
+                scanner->wake_tolerance_ns = 0;
+                (void)sleep_until(&next, 0);
+            }
+
+            clock_gettime(CLOCK_MONOTONIC, &now);
+            lateness_ns = ts_diff_ns(&now, &next);
+            if (lateness_ns > scanner->max_lateness_ns) {
+                scanner->max_lateness_ns = lateness_ns;
+            }
+            /* Machine-readable for scripts/analyze-timing.py. */
+            LOG_DBG("Wake lateness: %lld us", (long long)(lateness_ns / 1000));
         }
     }
 
@@ -690,7 +883,11 @@ void wifi_scanner_shutdown(wifi_scanner_t *scanner)
         return;
     }
 
-    LOG_INF("Shutting down Wi-Fi scanner");
+    LOG_INF("Shutting down Wi-Fi scanner (cycles=%llu, skipped slots=%llu, "
+            "max wake lateness=%lld us)",
+            (unsigned long long)scanner->cycles,
+            (unsigned long long)scanner->overruns,
+            (long long)(scanner->max_lateness_ns / 1000));
 
     scanner->running = 0;
 

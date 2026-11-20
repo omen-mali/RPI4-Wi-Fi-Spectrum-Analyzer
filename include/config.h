@@ -156,13 +156,48 @@ typedef struct {
  * ========================================================================= */
 
 /**
- * Scan interval in seconds. Controls how frequently the scanner thread
- * triggers a new Wi-Fi scan.
+ * Scan period in milliseconds: the time from one SCAN request to the next.
  *
- * Best practice: Use clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME, ...)
- * for precise, drift-free periodic scanning. Avoid sleep()/usleep().
+ * The scanner runs on a fixed-rate schedule. Cycle N starts at
+ * t0 + N * period, using clock_nanosleep(CLOCK_MONOTONIC, TIMER_ABSTIME) on
+ * a deadline that advances by exactly one period, so scan duration and
+ * wpa_supplicant latency don't change the rate or accumulate drift.
+ *
+ * A full scan (2.4 + 5 GHz) on the CYW43455 (Raspberry Pi 4 Model B) takes 
+ * ~5 s, so the period must leave headroom. A cycle that runs past its 
+ * deadline counts as an overrun: the missed slot(s) are skipped and the 
+ * schedule stays phase-aligned.
+ *
+ * Override at runtime with "-p <ms>" (SCAN_PERIOD_MS_MIN .. SCAN_PERIOD_MS_MAX).
  */
-#define SCAN_INTERVAL_SEC   5
+#define SCAN_PERIOD_MS          10000u
+#define SCAN_PERIOD_MS_MIN       1000u
+#define SCAN_PERIOD_MS_MAX     600000u
+
+/**
+ * Upper bound on waiting for CTRL-EVENT-SCAN-RESULTS after SCAN is accepted.
+ * The wait blocks in poll() on the monitor socket, so completion is seen
+ * as soon as the event arrives.
+ */
+#define SCAN_COMPLETE_TIMEOUT_MS 30000
+
+/**
+ * Wake-up timer tolerance for the scan schedule, in nanoseconds.
+ *
+ * 0 (default): clock_nanosleep(TIMER_ABSTIME). On QNX its expiry is aligned
+ *    to the system tick (1 ms by default, set only at boot by procnto -C;
+ *    ClockPeriod() can't change it at run time in QNX 8), so the wake-up
+ *    lands up to one tick after the deadline.
+ * 1 .. WAKE_TOLERANCE_NS_MAX: QNX high-resolution timer. TimerTimeout()
+ *    with TIMER_TOLERANCE, then an absolute _NTO_TIMEOUT_NANOSLEEP. The
+ *    timer hardware is programmed for the deadline itself. Needs
+ *    PROCMGR_AID_HIGH_RESOLUTION_TIMER (root has it by default). Ignored on
+ *    non-QNX hosts.
+ *
+ * Override at runtime with "-T <ns>".
+ */
+#define WAKE_TOLERANCE_NS_DEFAULT 0u
+#define WAKE_TOLERANCE_NS_MAX     999999u
 
 /**
  * wpa_supplicant control interface.
@@ -238,5 +273,24 @@ typedef enum {
 
 /** Minimum log level to emit. Messages below this level are suppressed. */
 #define LOG_MIN_LEVEL  LOG_DEBUG
+
+/**
+ * Asynchronous logger (logger.c).
+ *
+ * Callers format the line on their own stack and copy it into a fixed ring
+ * of LOG_RING_ENTRIES slots (LOG_LINE_MAX bytes each, longer lines are
+ * truncated with "..."). A writer thread does all the stderr I/O, so a
+ * real-time thread never blocks on a slow file or terminal (stderr is often
+ * redirected to a file on the SD card). If the ring is full, the newest
+ * message is dropped and counted, and the writer reports the count. Callers
+ * never wait for space.
+ *
+ * The writer runs at LOGGER_WRITER_PRIORITY (SCHED_RR): above default user
+ * load (10) so the log keeps draining, below the scanner (15). Its I/O is
+ * never done under the ring mutex.
+ */
+#define LOG_RING_ENTRIES        256   /* power of two */
+#define LOG_LINE_MAX            512
+#define LOGGER_WRITER_PRIORITY  11
 
 #endif /* WIFI_SPECTRUM_CONFIG_H */

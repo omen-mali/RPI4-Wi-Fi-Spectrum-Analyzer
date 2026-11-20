@@ -220,14 +220,19 @@ static void print_usage(const char *prog)
 {
     fprintf(stderr,
             "Wi-Fi Spectrum Analyzer v" APP_VERSION "\n"
-            "Usage: %s [-i <interface>] [-c <country>]\n"
+            "Usage: %s [-i <interface>] [-c <country>] [-p <period_ms>] [-T <tolerance_ns>]\n"
             "  -i <interface>  Wi-Fi interface whose wpa_supplicant control socket\n"
             "                  to use (default: %s -> %s/%s)\n"
             "  -c <country>    ISO 3166-1 alpha-2 regulatory domain used to pick\n"
             "                  legal channels (default: %s; built in: CA, US, 00=world)\n"
+            "  -p <period_ms>  Fixed scan period, SCAN to SCAN (default: %u;\n"
+            "                  range %u..%u)\n"
+            "  -T <tol_ns>     Wake timer: 0 = tick-aligned clock_nanosleep (default),\n"
+            "                  1..%u = QNX high-resolution timer with that tolerance\n"
             "  -h              Show this help\n",
             prog, WIFI_IFACE_DEFAULT, WPA_CTRL_DIR, WIFI_IFACE_DEFAULT,
-            WIFI_COUNTRY_DEFAULT);
+            WIFI_COUNTRY_DEFAULT, SCAN_PERIOD_MS, SCAN_PERIOD_MS_MIN,
+            SCAN_PERIOD_MS_MAX, WAKE_TOLERANCE_NS_MAX);
 }
 
 /**
@@ -236,18 +241,23 @@ static void print_usage(const char *prog)
  * @param[out] ctrl_path      Receives "<WPA_CTRL_DIR>/<iface>".
  * @param      ctrl_path_len  Size of ctrl_path.
  * @param[out] country        Receives the -c value (or the default).
+ * @param[out] period_ms      Receives the -p value (or SCAN_PERIOD_MS).
+ * @param[out] tolerance_ns   Receives the -T value (or WAKE_TOLERANCE_NS_DEFAULT).
  * @return 0 to continue, 1 if help was printed, -1 on invalid arguments.
  */
 static int parse_args(int argc, char *argv[], char *ctrl_path, size_t ctrl_path_len,
-                      const char **country)
+                      const char **country, uint32_t *period_ms,
+                      uint32_t *tolerance_ns)
 {
     const char *iface = WIFI_IFACE_DEFAULT;
     int opt;
     int n;
 
-    *country = WIFI_COUNTRY_DEFAULT;
+    *country   = WIFI_COUNTRY_DEFAULT;
+    *period_ms = SCAN_PERIOD_MS;
+    *tolerance_ns = WAKE_TOLERANCE_NS_DEFAULT;
 
-    while ((opt = getopt(argc, argv, "i:c:h")) != -1) {
+    while ((opt = getopt(argc, argv, "i:c:p:T:h")) != -1) {
         switch (opt) {
         case 'i':
             iface = optarg;
@@ -260,6 +270,36 @@ static int parse_args(int argc, char *argv[], char *ctrl_path, size_t ctrl_path_
             }
             *country = optarg;
             break;
+        case 'p': {
+            char *end;
+            unsigned long v;
+
+            errno = 0;
+            v = strtoul(optarg, &end, 10);
+            if (errno != 0 || end == optarg || *end != '\0' ||
+                v < SCAN_PERIOD_MS_MIN || v > SCAN_PERIOD_MS_MAX) {
+                fprintf(stderr, "Invalid period '%s' (expected %u..%u ms)\n",
+                        optarg, SCAN_PERIOD_MS_MIN, SCAN_PERIOD_MS_MAX);
+                return -1;
+            }
+            *period_ms = (uint32_t)v;
+            break;
+        }
+        case 'T': {
+            char *end;
+            unsigned long v;
+
+            errno = 0;
+            v = strtoul(optarg, &end, 10);
+            if (errno != 0 || end == optarg || *end != '\0' ||
+                v > WAKE_TOLERANCE_NS_MAX) {
+                fprintf(stderr, "Invalid tolerance '%s' (expected 0..%u ns)\n",
+                        optarg, WAKE_TOLERANCE_NS_MAX);
+                return -1;
+            }
+            *tolerance_ns = (uint32_t)v;
+            break;
+        }
         case 'h':
             print_usage(argv[0]);
             return 1;
@@ -299,11 +339,14 @@ int main(int argc, char *argv[])
     int               exit_code = EXIT_SUCCESS;
     char              ctrl_path[WPA_CTRL_PATH_MAX];
     const char        *country = NULL;
+    uint32_t          period_ms = SCAN_PERIOD_MS;
+    uint32_t          tolerance_ns = WAKE_TOLERANCE_NS_DEFAULT;
     const regdomain_t *regdomain;
     int               country_known;
 
     /* ----- Step 0: Parse command line ----- */
-    switch (parse_args(argc, argv, ctrl_path, sizeof(ctrl_path), &country)) {
+    switch (parse_args(argc, argv, ctrl_path, sizeof(ctrl_path), &country, &period_ms,
+                       &tolerance_ns)) {
     case 0:  break;
     case 1:  return EXIT_SUCCESS;
     default: return EXIT_FAILURE;
@@ -340,6 +383,7 @@ int main(int argc, char *argv[])
 
     /* ----- Step 5: Initialize Wi-Fi scanner module ----- */
     scanner = wifi_scanner_init(ctrl_path,
+                                period_ms,
                                 &shared_scan_buffer,
                                 &scan_buffer_mutex,
                                 &scan_buffer_cond);
@@ -347,6 +391,12 @@ int main(int argc, char *argv[])
         LOG_ERR("Failed to initialize Wi-Fi scanner");
         exit_code = EXIT_FAILURE;
         goto cleanup_shared;
+    }
+
+    if (wifi_scanner_set_wake_tolerance(scanner, tolerance_ns) != 0) {
+        LOG_ERR("Invalid wake tolerance %u ns", tolerance_ns);
+        exit_code = EXIT_FAILURE;
+        goto cleanup_scanner;
     }
 
     /* ----- Step 5b: Regulatory domain sanity check ----- */

@@ -145,6 +145,8 @@ sudo ~/bin/wifi-analyzer -i <iface>      # other interface
 | --- | --- | --- |
 | `-i <iface>` | `bcm0` | Interface whose socket `/var/run/wpa_supplicant/<iface>` is used |
 | `-c <CC>` | `CA` (`WIFI_COUNTRY_DEFAULT` in `config.h`) | Regulatory domain: only channels legal there are recommended. Built-in tables: `CA`, `US`, `00` (world). Unknown codes fall back to `00`. |
+| `-p <ms>` | `10000` (`SCAN_PERIOD_MS`) | Fixed scan period, SCAN to SCAN (1000-600000). Scans start on an absolute CLOCK_MONOTONIC schedule, so scan duration doesn't affect the rate. A cycle that runs past its deadline skips the missed slot(s) and logs an overrun. |
+| `-T <ns>` | `0` (`WAKE_TOLERANCE_NS_DEFAULT`) | Wake timer for the schedule. `0`: `clock_nanosleep`, aligned to the 1 ms system tick (wakes up to ~1 ms late). `1`-`999999`: QNX high-resolution timer with that tolerance (measured 5-11 µs late with `-T 1000`). Needs root. The tick itself can't be changed at run time on QNX 8. |
 
 Canada, for example, excludes 2.4 GHz channels 12-14 and 5 GHz channels 120-128 (weather radar).
 At startup the app reads wpa_supplicant's `country` and warns if it's unset or differs from `-c`.
@@ -160,6 +162,7 @@ The application logs to stderr. Press `Ctrl+C` to stop.
 | `wpa_ctrl_open(...) failed ... Permission denied` | Not running as root. |
 | `SCAN_RESULTS reply is ... near wpa_supplicant's 4096-byte cap` | Too many APs nearby; wpa_supplicant truncates `SCAN_RESULTS` at about 50-60 entries. |
 | `could not load library libwpactrl-2.11.so.1` | Linked dynamically and the `.so` isn't on the target, or the binary was started directly instead of through `~/bin/wifi-analyzer`. Rerun `scripts/deploy.sh`. |
+| `Scan cycle overran its N ms period` | A scan took longer than `-p`. A full 2.4 + 5 GHz scan takes about 5 s (longer without `country=`), so keep the period well above that. |
 | `wpa_supplicant has no country set` | Add `country=CA` to `/boot/wpa_supplicant.conf` and reboot. |
 
 ## Project Structure
@@ -202,7 +205,8 @@ These practices are documented in code comments throughout the project:
 | No malloc in RT paths      | wifi_scanner.c, channel_analyzer.c | Deterministic timing; malloc can block     |
 | PTHREAD_PRIO_INHERIT       | logger.c, main.c                   | Prevents priority inversion                |
 | PTHREAD_EXPLICIT_SCHED     | thread_manager.c                   | Ensures threads get the attributes you set |
-| clock_nanosleep(MONOTONIC) | wifi_scanner.c                     | Drift-free periodic scanning               |
+| clock_nanosleep(TIMER_ABSTIME) | wifi_scanner.c                 | Fixed-rate, drift-free scan schedule with overrun detection |
+| poll() on wpa_ctrl fd      | wifi_scanner.c                     | Event-driven scan completion, no polling quantization |
 | sigwait() pattern          | main.c                             | Safe signal handling in multithreaded apps |
 | Reentrant in-place parsing | wifi_scanner.c (`next_field`)      | Thread-safe, no allocation, keeps empty fields (hidden SSIDs) |
 | Check all return values    | All files                          | Robust error handling for RTOS reliability |

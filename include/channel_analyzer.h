@@ -22,6 +22,7 @@
 #define WIFI_SPECTRUM_CHANNEL_ANALYZER_H
 
 #include "config.h"
+#include "regdomain.h"
 #include <pthread.h>
 
 /**
@@ -32,13 +33,16 @@ typedef struct channel_analyzer channel_analyzer_t;
 /**
  * @brief Initialize the channel analyzer module.
  *
+ * @param regdomain      Regulatory domain; only channels it permits are
+ *                       analyzed and recommended (see regdomain_lookup()).
  * @param shared_buffer  Pointer to the shared scan results buffer (read-only).
  * @param buffer_mutex   Pointer to the mutex protecting the shared buffer.
  * @param buffer_cond    Pointer to the condition variable signaled on new data.
  *
  * @return Pointer to an allocated analyzer context, or NULL on failure.
  */
-channel_analyzer_t *channel_analyzer_init(scan_buffer_t *shared_buffer,
+channel_analyzer_t *channel_analyzer_init(const regdomain_t *regdomain,
+                                          scan_buffer_t *shared_buffer,
                                           pthread_mutex_t *buffer_mutex,
                                           pthread_cond_t *buffer_cond);
 

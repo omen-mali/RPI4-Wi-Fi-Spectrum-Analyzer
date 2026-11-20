@@ -58,7 +58,10 @@ set(CMAKE_SHARED_LINKER_FLAGS_INIT "-Vgcc_ntoaarch64le")
 # -- Sysroot --
 # Points the compiler to QNX system headers and libraries for the target.
 set(CMAKE_SYSROOT "${QNX_TARGET}")
-set(CMAKE_FIND_ROOT_PATH "${QNX_TARGET}")
+# Target libraries live under $QNX_TARGET/aarch64le/{lib,usr/lib}, and the
+# shared headers under $QNX_TARGET/usr/include. List the arch dir first so
+# find_library() finds aarch64 libraries (e.g. libwpactrl-2.11).
+set(CMAKE_FIND_ROOT_PATH "${QNX_TARGET}/aarch64le" "${QNX_TARGET}")
 
 # -- Search path behavior --
 # Search headers and libraries only under the QNX sysroot, never the host.

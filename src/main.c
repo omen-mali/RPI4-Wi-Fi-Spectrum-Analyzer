@@ -45,15 +45,18 @@
 #include "wifi_scanner.h"
 #include "channel_analyzer.h"
 #include "thread_manager.h"
+#include "regdomain.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 #include <signal.h>
 #include <pthread.h>
 #include <sched.h>
 #include <time.h>
 #include <errno.h>
+#include <unistd.h>
 
 /*
  * QNX-specific header for process manager abilities (privilege escalation).
@@ -210,6 +213,78 @@ static int block_termination_signals(sigset_t *wait_set)
 }
 
 /* =========================================================================
+ * Internal: Command-Line Parsing
+ * ========================================================================= */
+
+static void print_usage(const char *prog)
+{
+    fprintf(stderr,
+            "Wi-Fi Spectrum Analyzer v" APP_VERSION "\n"
+            "Usage: %s [-i <interface>] [-c <country>]\n"
+            "  -i <interface>  Wi-Fi interface whose wpa_supplicant control socket\n"
+            "                  to use (default: %s -> %s/%s)\n"
+            "  -c <country>    ISO 3166-1 alpha-2 regulatory domain used to pick\n"
+            "                  legal channels (default: %s; built in: CA, US, 00=world)\n"
+            "  -h              Show this help\n",
+            prog, WIFI_IFACE_DEFAULT, WPA_CTRL_DIR, WIFI_IFACE_DEFAULT,
+            WIFI_COUNTRY_DEFAULT);
+}
+
+/**
+ * @brief Parse argv: build the control socket path and pick the country.
+ *
+ * @param[out] ctrl_path      Receives "<WPA_CTRL_DIR>/<iface>".
+ * @param      ctrl_path_len  Size of ctrl_path.
+ * @param[out] country        Receives the -c value (or the default).
+ * @return 0 to continue, 1 if help was printed, -1 on invalid arguments.
+ */
+static int parse_args(int argc, char *argv[], char *ctrl_path, size_t ctrl_path_len,
+                      const char **country)
+{
+    const char *iface = WIFI_IFACE_DEFAULT;
+    int opt;
+    int n;
+
+    *country = WIFI_COUNTRY_DEFAULT;
+
+    while ((opt = getopt(argc, argv, "i:c:h")) != -1) {
+        switch (opt) {
+        case 'i':
+            iface = optarg;
+            break;
+        case 'c':
+            if (!regdomain_code_is_valid(optarg)) {
+                fprintf(stderr, "Invalid country code '%s' (expected e.g. CA, US, 00)\n",
+                        optarg);
+                return -1;
+            }
+            *country = optarg;
+            break;
+        case 'h':
+            print_usage(argv[0]);
+            return 1;
+        default:
+            print_usage(argv[0]);
+            return -1;
+        }
+    }
+
+    if (iface[0] == '\0' || strlen(iface) >= WIFI_IFACE_NAME_MAX ||
+        strchr(iface, '/') != NULL) {
+        fprintf(stderr, "Invalid interface name '%s'\n", iface);
+        return -1;
+    }
+
+    n = snprintf(ctrl_path, ctrl_path_len, "%s/%s", WPA_CTRL_DIR, iface);
+    if (n < 0 || (size_t)n >= ctrl_path_len) {
+        fprintf(stderr, "Control socket path too long\n");
+        return -1;
+    }
+
+    return 0;
+}
+
+/* =========================================================================
  * main()
  * ========================================================================= */
 
@@ -222,9 +297,18 @@ int main(int argc, char *argv[])
     managed_thread_t  scanner_thread;
     managed_thread_t  analyzer_thread;
     int               exit_code = EXIT_SUCCESS;
+    char              ctrl_path[WPA_CTRL_PATH_MAX];
+    const char        *country = NULL;
+    const regdomain_t *regdomain;
+    int               country_known;
 
-    (void)argc;
-    (void)argv;
+    /* ----- Step 0: Parse command line ----- */
+    switch (parse_args(argc, argv, ctrl_path, sizeof(ctrl_path), &country)) {
+    case 0:  break;
+    case 1:  return EXIT_SUCCESS;
+    default: return EXIT_FAILURE;
+    }
+    regdomain = regdomain_lookup(country, &country_known);
 
     /* ----- Step 1: Block signals before creating any threads ----- */
     if (block_termination_signals(&wait_set) != 0) {
@@ -238,8 +322,7 @@ int main(int argc, char *argv[])
         return EXIT_FAILURE;
     }
 
-    LOG_INF("=== Wi-Fi Spectrum Analyzer v%d.%d.%d starting ===",
-            0, 1, 0);
+    LOG_INF("=== Wi-Fi Spectrum Analyzer v%s starting ===", APP_VERSION);
 
     /* ----- Step 3: QNX-specific privilege setup ----- */
     if (setup_qnx_privileges() != 0) {
@@ -256,7 +339,8 @@ int main(int argc, char *argv[])
     }
 
     /* ----- Step 5: Initialize Wi-Fi scanner module ----- */
-    scanner = wifi_scanner_init(&shared_scan_buffer,
+    scanner = wifi_scanner_init(ctrl_path,
+                                &shared_scan_buffer,
                                 &scan_buffer_mutex,
                                 &scan_buffer_cond);
     if (!scanner) {
@@ -265,8 +349,32 @@ int main(int argc, char *argv[])
         goto cleanup_shared;
     }
 
+    /* ----- Step 5b: Regulatory domain sanity check ----- */
+    if (!country_known) {
+        LOG_WRN("No built-in channel table for country '%s'; using the "
+                "conservative world domain (00)", country);
+    }
+    {
+        char radio_cc[3];
+
+        if (wifi_scanner_get_country(scanner, radio_cc, sizeof(radio_cc)) != 0) {
+            LOG_WRN("wpa_supplicant has no country set -- the radio uses the "
+                    "world domain (passive on many 5 GHz channels). Add "
+                    "'country=%s' to /boot/wpa_supplicant.conf and reboot.",
+                    country);
+        } else if (strncasecmp(radio_cc, country, 2) != 0) {
+            LOG_WRN("Country mismatch: wpa_supplicant=%s, analyzer=%s. "
+                    "Recommendations follow %s.",
+                    radio_cc, country, regdomain_code(regdomain));
+        } else {
+            LOG_INF("Regulatory domain: %s (matches wpa_supplicant)",
+                    regdomain_code(regdomain));
+        }
+    }
+
     /* ----- Step 6: Initialize channel analyzer module ----- */
-    analyzer = channel_analyzer_init(&shared_scan_buffer,
+    analyzer = channel_analyzer_init(regdomain,
+                                     &shared_scan_buffer,
                                      &scan_buffer_mutex,
                                      &scan_buffer_cond);
     if (!analyzer) {

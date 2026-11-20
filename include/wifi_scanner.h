@@ -49,6 +49,8 @@ typedef struct wifi_scanner wifi_scanner_t;
  * @param ctrl_path      Full path of the wpa_supplicant control socket for
  *                       the Wi-Fi interface (e.g. "/var/run/wpa_supplicant/bcm0").
  *                       Copied into the context; must be < WPA_CTRL_PATH_MAX.
+ * @param period_ms      Fixed scan period, SCAN request to SCAN request
+ *                       (SCAN_PERIOD_MS_MIN .. SCAN_PERIOD_MS_MAX).
  * @param shared_buffer  Pointer to the shared scan results buffer.
  * @param buffer_mutex   Pointer to the mutex protecting shared_buffer.
  * @param buffer_cond    Pointer to the condition variable signaled when
@@ -60,9 +62,22 @@ typedef struct wifi_scanner wifi_scanner_t;
  * scanner thread, so that initialization errors are caught early.
  */
 wifi_scanner_t *wifi_scanner_init(const char *ctrl_path,
+                                  uint32_t period_ms,
                                   scan_buffer_t *shared_buffer,
                                   pthread_mutex_t *buffer_mutex,
                                   pthread_cond_t *buffer_cond);
+
+/**
+ * @brief Select the wake-up timer used by the fixed-rate schedule.
+ *
+ * Call before starting the scanner thread. See WAKE_TOLERANCE_NS_DEFAULT
+ * in config.h: 0 = tick-aligned clock_nanosleep(); 1..WAKE_TOLERANCE_NS_MAX
+ * = QNX high-resolution timer with that tolerance (needs
+ * PROCMGR_AID_HIGH_RESOLUTION_TIMER, root has it).
+ *
+ * @return 0 on success, -1 if out of range.
+ */
+int wifi_scanner_set_wake_tolerance(wifi_scanner_t *scanner, uint32_t tolerance_ns);
 
 /**
  * @brief Query wpa_supplicant's configured regulatory country ("GET country").
@@ -80,14 +95,15 @@ int wifi_scanner_get_country(wifi_scanner_t *scanner, char *out, size_t out_len)
 /**
  * @brief Scanner thread entry point -- runs the scan loop.
  *
- * This function is designed to be passed to pthread_create(). It runs
- * an infinite loop that:
+ * This function is designed to be passed to pthread_create(). It runs a
+ * fixed-rate loop (one slot per period_ms, see SCAN_PERIOD_MS) that:
  *   1. Sends a SCAN command to wpa_supplicant.
- *   2. Waits for the scan-complete event.
+ *   2. Blocks in poll() on the monitor socket until the scan-complete event.
  *   3. Retrieves SCAN_RESULTS and parses them.
  *   4. Writes parsed results into the shared buffer (under mutex).
  *   5. Signals the condition variable so the analyzer can wake up.
- *   6. Sleeps for SCAN_INTERVAL_SEC before repeating.
+ *   6. Sleeps until the next slot's absolute deadline (overrun slots are
+ *      skipped and counted).
  *
  * The loop checks for POSIX cancellation points to allow clean shutdown.
  *

@@ -51,6 +51,7 @@ add_compile_options(
 # already behind #ifdef __QNX__ in the sources.
 add_library(wsa_core STATIC
     src/wifi_scanner.c
+    src/scan_parse.c
     src/channel_analyzer.c
     src/thread_manager.c
     src/logger.c

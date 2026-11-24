@@ -1,0 +1,4 @@
+bssid / frequency / signal level / flags / ssid
+02:00:00:00:03:01	2484	-50	[ESS]	net-01
+02:00:00:00:03:02	4940	-51	[ESS]	net-02
+02:00:00:00:03:03	5955	-52	[ESS]	net-03

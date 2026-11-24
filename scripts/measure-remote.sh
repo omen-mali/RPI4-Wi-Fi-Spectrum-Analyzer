@@ -1,5 +1,5 @@
 #!/bin/sh
-# Runs ON THE PI (QNX ksh). Captures analyzer logs for timing analysis.
+# Runs on the Pi (QNX ksh). Captures analyzer logs for timing analysis.
 #
 # Usage: sh measure-remote.sh [seconds_per_phase] [ncpu] [profile]
 #

@@ -20,6 +20,15 @@ endif()
 
 set(FIXTURE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/fixtures")
 
+# Link-time fake of libwpactrl (fakes/fake_wpa_ctrl.h).
+add_library(fake_wpa_ctrl STATIC fakes/fake_wpa_ctrl.c)
+target_include_directories(fake_wpa_ctrl PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/fakes)
+target_compile_definitions(fake_wpa_ctrl PRIVATE FIXTURE_DIR="${FIXTURE_DIR}" _POSIX_C_SOURCE=200809L)
+target_link_libraries(fake_wpa_ctrl PUBLIC Threads::Threads)
+if(WSA_SAN_FLAGS)
+    target_compile_options(fake_wpa_ctrl PRIVATE ${WSA_SAN_FLAGS})
+endif()
+
 # wsa_add_test(name): build tests/<name>.c against the core library (and the
 # fake libwpactrl, once it exists) and register it with CTest.
 function(wsa_add_test name)
@@ -35,3 +44,4 @@ endfunction()
 
 wsa_add_test(test_regdomain)
 wsa_add_test(test_channel_analyzer)
+wsa_add_test(test_scan_parse)

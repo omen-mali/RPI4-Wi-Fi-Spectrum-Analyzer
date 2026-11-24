@@ -94,12 +94,13 @@ jobs:
       - name: Install tools
         run: sudo apt-get update && sudo apt-get install -y --no-install-recommends shellcheck
       # measure-remote.sh runs on the Pi under QNX's ksh, so it's held to
-      # POSIX sh. The rest are bash.
+      # POSIX sh. The rest are bash. -x follows the files they source
+      # (scripts/local-env.sh, scripts/ci-thresholds.env).
       - name: shellcheck
         run: |
           shopt -s extglob
-          shellcheck scripts/!(measure-remote).sh
-          shellcheck -s sh scripts/measure-remote.sh
+          shellcheck -x scripts/!(measure-remote).sh
+          shellcheck -x -s sh scripts/measure-remote.sh
       - name: Python syntax
         run: python3 -m py_compile scripts/*.py tests/scripts/*.py
       - name: Python tests

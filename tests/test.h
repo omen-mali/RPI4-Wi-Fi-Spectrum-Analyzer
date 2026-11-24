@@ -5,7 +5,8 @@
  * Each test file defines `static void test_xxx(void)` functions, calls them
  * with RUN() from main(), and returns test_finish(). A failed check prints
  * `file:line: expr (got ..., expected ...)` and the test keeps going, so one
- * run reports every failure.
+ * run reports every failure. Results go to stdout, because some tests capture
+ * stderr (the logger's output).
  */
 
 #ifndef WSA_TEST_H
@@ -23,9 +24,10 @@ static unsigned long test_failures_;
         test_checks_++;                                               \
         if (!(ok)) {                                                  \
             test_failures_++;                                         \
-            fprintf(stderr, "%s:%d: ", __FILE__, __LINE__);           \
-            fprintf(stderr, __VA_ARGS__);                             \
-            fputc('\n', stderr);                                      \
+            printf("%s:%d: ", __FILE__, __LINE__);                    \
+            printf(__VA_ARGS__);                                      \
+            putchar('\n');                                            \
+            fflush(stdout);                                           \
         }                                                             \
     } while (0)
 

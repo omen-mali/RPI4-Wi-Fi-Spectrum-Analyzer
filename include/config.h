@@ -179,7 +179,9 @@ typedef struct {
  * The wait blocks in poll() on the monitor socket, so completion is seen
  * as soon as the event arrives.
  */
+#ifndef SCAN_COMPLETE_TIMEOUT_MS   /* the host tests build with a shorter one */
 #define SCAN_COMPLETE_TIMEOUT_MS 30000
+#endif
 
 /**
  * Wake-up timer tolerance for the scan schedule, in nanoseconds.

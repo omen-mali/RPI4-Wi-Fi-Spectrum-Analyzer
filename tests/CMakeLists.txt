@@ -29,10 +29,11 @@ if(WSA_SAN_FLAGS)
     target_compile_options(fake_wpa_ctrl PRIVATE ${WSA_SAN_FLAGS})
 endif()
 
-# wsa_add_test(name): build tests/<name>.c against the core library (and the
-# fake libwpactrl, once it exists) and register it with CTest.
+# wsa_add_test(name [extra sources...]): build tests/<name>.c (plus any extra
+# sources) against the core library and the fake libwpactrl, and register it
+# with CTest.
 function(wsa_add_test name)
-    add_executable(${name} ${name}.c)
+    add_executable(${name} ${name}.c ${ARGN})
     target_include_directories(${name} PRIVATE ${CMAKE_CURRENT_SOURCE_DIR})
     target_compile_definitions(${name} PRIVATE FIXTURE_DIR="${FIXTURE_DIR}")
     target_link_libraries(${name} PRIVATE wsa_core)
@@ -46,3 +47,11 @@ wsa_add_test(test_regdomain)
 wsa_add_test(test_channel_analyzer)
 wsa_add_test(test_scan_parse)
 wsa_add_test(test_schedule)
+
+# The scanner test compiles its own wifi_scanner.c with a 300 ms scan-event
+# timeout, so timeouts are tested in well under a second. Its object file
+# defines every wifi_scanner_* symbol, so the linker never pulls the copy in
+# wsa_core (archive members are only pulled for unresolved symbols).
+wsa_add_test(test_scanner ${CMAKE_SOURCE_DIR}/src/wifi_scanner.c)
+target_compile_definitions(test_scanner PRIVATE SCAN_COMPLETE_TIMEOUT_MS=300)
+

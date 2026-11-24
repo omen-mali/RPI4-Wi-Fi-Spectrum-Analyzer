@@ -8,7 +8,8 @@
 # On macOS it re-runs itself inside the linux/amd64 build image
 # (docker/Containerfile), without the QNX SDP: the host build needs
 # clock_nanosleep, which macOS lacks. Each compiler/sanitizer pair gets its
-# own build directory, build/host-<cc>-<san>.
+# own build directory, build/host-<cc>-<san>. tsan is Linux-only, it can't
+# run under Rosetta.
 #
 # Environment overrides (macOS only):
 #   CONTAINER_RUNTIME  container | docker     (default: auto-detect)
@@ -25,6 +26,12 @@ case "$CC_NAME" in gcc|clang) ;; *) die "compiler must be gcc or clang (got '$CC
 case "$SAN" in asan|tsan|none) ;; *) die "sanitizer must be asan, tsan or none (got '$SAN')" ;; esac
 
 if [ "$(uname -s)" = Darwin ]; then
+    # ThreadSanitizer aborts at startup under Rosetta's x86-64 emulation
+    # ("memory layout is incompatible, even though ASLR is disabled"), even
+    # for an empty program. It runs in the hosted CI (native x86-64 Linux).
+    if [ "$SAN" = tsan ]; then
+        die "tsan can't run in the linux/amd64 container on macOS (Rosetta); it runs in the hosted CI's sanitizers job"
+    fi
     IMAGE="${QNX_BUILD_IMAGE:-qnx800-build:latest}"
     RUNTIME="${CONTAINER_RUNTIME:-}"
     if [ -z "$RUNTIME" ]; then
@@ -44,9 +51,12 @@ if [ "$(uname -s)" = Darwin ]; then
         docker) PLATFORM=(--platform linux/amd64) ;;
         *) die "unsupported CONTAINER_RUNTIME '$RUNTIME'" ;;
     esac
-    # Rebuild the image if it's missing or predates the host compilers.
-    if ! "$RUNTIME" run --rm "${PLATFORM[@]}" "$IMAGE" \
-            sh -c 'command -v gcc && command -v clang' >/dev/null 2>&1; then
+    # Rebuild the image if it's missing or predates the host compilers and
+    # clang's sanitizer runtimes.
+    if ! "$RUNTIME" run --rm "${PLATFORM[@]}" "$IMAGE" sh -c \
+            'command -v gcc && command -v clang &&
+             test -e "$(clang -print-resource-dir)/lib/linux/libclang_rt.tsan-x86_64.a"' \
+            >/dev/null 2>&1; then
         echo ">> Building $IMAGE with $RUNTIME (linux/amd64)"
         "$RUNTIME" build "${PLATFORM[@]}" -t "$IMAGE" \
             -f "$REPO/docker/Containerfile" "$REPO/docker"

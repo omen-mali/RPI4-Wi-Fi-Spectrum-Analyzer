@@ -57,6 +57,9 @@ start_load() {
     done
 }
 stop_load() {
+    # LOADPIDS is a space-separated list (POSIX sh has no arrays), so it's
+    # split on purpose.
+    # shellcheck disable=SC2086
     [ -n "$LOADPIDS" ] && kill $LOADPIDS 2>/dev/null
     LOADPIDS=""
 }
@@ -118,9 +121,14 @@ run_phase() {
     sleep 8
     # Thread priorities/policies as actually applied (e.g. 15f, 10r).
     # The app runs as root: pidin must too, or it sees only our own processes.
-    sudo -n pidin -p wifi_spectrum_analyzer >"$OUT/$name.pidin.txt" 2>&1
-    sudo -n pidin -p "$WPA_NAME" >>"$OUT/$name.pidin.txt" 2>&1
-    [ "$load" = 1 ] && sudo -n pidin >"$OUT/$name.system-pidin.txt" 2>&1
+    # The output files are written as the login user on purpose, so they stay
+    # ours to fetch and delete.
+    # shellcheck disable=SC2024
+    {
+        sudo -n pidin -p wifi_spectrum_analyzer >"$OUT/$name.pidin.txt" 2>&1
+        sudo -n pidin -p "$WPA_NAME" >>"$OUT/$name.pidin.txt" 2>&1
+        [ "$load" = 1 ] && sudo -n pidin >"$OUT/$name.system-pidin.txt" 2>&1
+    }
     sleep $((DUR - 8))
     sudo -n slay -Q -f -s SIGINT wifi_spectrum_analyzer >/dev/null 2>&1
     wait $app || true

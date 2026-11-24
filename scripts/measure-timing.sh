@@ -40,6 +40,8 @@ LOCAL="$REPO/build/measurements/$(basename "$RUN")"
 mkdir -p "$LOCAL"
 # tar over ssh: scp with a remote wildcard failed against the QNX sshd.
 echo ">> Fetching $RUN -> $LOCAL"
+# The run's directory and name are split here, on the client, by design.
+# shellcheck disable=SC2029
 ssh "${CM[@]}" "$HOST" "cd '$(dirname "$RUN")' && tar cf - '$(basename "$RUN")'" \
     | tar xf - -C "$(dirname "$LOCAL")"
 ssh "${CM[@]}" "$HOST" 'cat ~/measure/last-run.out' >"$LOCAL/remote-output.txt" 2>/dev/null || true

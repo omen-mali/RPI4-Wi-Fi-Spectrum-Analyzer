@@ -52,7 +52,9 @@ if [ "$(uname -s)" = Darwin ]; then
         *) die "unsupported CONTAINER_RUNTIME '$RUNTIME'" ;;
     esac
     # Rebuild the image if it's missing or predates the host compilers and
-    # clang's sanitizer runtimes.
+    # clang's sanitizer runtimes. The probe is single-quoted so it expands
+    # inside the container, not here.
+    # shellcheck disable=SC2016
     if ! "$RUNTIME" run --rm "${PLATFORM[@]}" "$IMAGE" sh -c \
             'command -v gcc && command -v clang &&
              test -e "$(clang -print-resource-dir)/lib/linux/libclang_rt.tsan-x86_64.a"' \

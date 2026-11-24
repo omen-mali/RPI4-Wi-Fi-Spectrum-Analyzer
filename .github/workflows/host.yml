@@ -1,0 +1,140 @@
+# Portable checks on GitHub-hosted Linux runners: the host build and unit
+# tests (gcc and clang), sanitizers, static analysis, the scripts, and the
+# tag/version match on releases. The QNX build and the Pi smoke run report
+# separately (qnx/build, pi/smoke) from scripts/ci-local.sh.
+#
+# The `host` job at the end is the single required status check: it passes
+# only when every job above passed (version may be skipped off tags).
+name: host
+
+on:
+  push:
+    branches: ['**']
+    tags: ['v*']
+  pull_request:
+    branches: [main, dev]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  build-test:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        cc: [gcc, clang]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install tools
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ninja-build clang
+      - name: Build and test
+        run: scripts/host-test.sh "${{ matrix.cc }}" none
+
+  sanitizers:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        san: [asan, tsan]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install tools
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ninja-build clang libclang-rt-18-dev
+      # The runner kernel randomizes 32 bits of the mmap base, which lands
+      # mappings where clang 18's sanitizer runtimes expect their shadow
+      # memory, and TSan aborts with "unexpected memory mapping". 28 bits is
+      # the value the runtimes were built for.
+      - name: Narrow mmap randomization for the sanitizer runtimes
+        run: sudo sysctl -w vm.mmap_rnd_bits=28
+      - name: Build and test
+        run: scripts/host-test.sh clang "${{ matrix.san }}"
+
+  static:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install tools
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends ninja-build cppcheck clang clang-tidy
+      - name: cppcheck
+        run: cppcheck --enable=warning,performance,portability --error-exitcode=1 --inline-suppr -I include src
+      # clang-tidy reads compile_commands.json from a configured host build.
+      # main.c isn't part of the host build, so it isn't checked here.
+      - name: Configure the host build for clang-tidy
+        run: >-
+          cmake -S . -B build/host-clang-none -G Ninja
+          -DWIFI_HOST_TESTS=ON -DCMAKE_BUILD_TYPE=Debug
+          -DCMAKE_C_COMPILER=clang -DCMAKE_EXPORT_COMPILE_COMMANDS=ON
+      - name: clang-tidy
+        run: >-
+          clang-tidy -p build/host-clang-none
+          src/channel_analyzer.c src/regdomain.c src/logger.c src/scan_parse.c
+          src/schedule.c src/wifi_scanner.c src/thread_manager.c
+
+  scripts:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install tools
+        run: sudo apt-get update && sudo apt-get install -y --no-install-recommends shellcheck
+      # measure-remote.sh runs on the Pi under QNX's ksh, so it's held to
+      # POSIX sh. The rest are bash.
+      - name: shellcheck
+        run: |
+          shopt -s extglob
+          shellcheck scripts/!(measure-remote).sh
+          shellcheck -s sh scripts/measure-remote.sh
+      - name: Python syntax
+        run: python3 -m py_compile scripts/*.py tests/scripts/*.py
+      - name: Python tests
+        run: python3 -m unittest discover -s tests/scripts -v
+
+  version:
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Tag matches project(VERSION)
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          version="$(python3 -c 'import re,sys; m = re.search(r"project\([^)]*?\bVERSION\s+(\d+\.\d+\.\d+)", open("CMakeLists.txt").read()); sys.exit("no project(VERSION) in CMakeLists.txt") if not m else print(m.group(1))')"
+          echo "tag ${TAG}, CMakeLists.txt VERSION ${version}"
+          if [ "${TAG#v}" != "$version" ]; then
+            echo "::error::tag ${TAG} doesn't match project(VERSION ${version})"
+            exit 1
+          fi
+
+  host:
+    if: always()
+    needs: [build-test, sanitizers, static, scripts, version]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    steps:
+      - name: Require every job to pass
+        env:
+          RESULTS: ${{ toJSON(needs) }}
+        run: |
+          echo "$RESULTS" | jq -r 'to_entries[] | "\(.key): \(.value.result)"'
+          echo "$RESULTS" | jq -e 'to_entries | all(
+              .value.result == "success"
+              or (.key == "version" and .value.result == "skipped"))' >/dev/null

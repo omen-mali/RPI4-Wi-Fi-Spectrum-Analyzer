@@ -1,0 +1,21 @@
+# clang-tidy for the host build (see the static job in .github/workflows/host.yml).
+# Only clang-analyzer findings fail the check, and the rest are reported.
+#
+# Excluded beyond the defaults:
+#   clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling
+#     asks for C11 Annex K (memcpy_s, snprintf_s, ...), which neither glibc
+#     nor QNX provides.
+#   clang-analyzer-valist.Uninitialized
+#     clang 18 reports va_list as uninitialized right after va_start on
+#     x86-64 (logger_log), a false positive.
+Checks: >-
+  -*,
+  bugprone-*,
+  cert-*,
+  clang-analyzer-*,
+  -bugprone-easily-swappable-parameters,
+  -cert-err33-c,
+  -clang-analyzer-security.insecureAPI.DeprecatedOrUnsafeBufferHandling,
+  -clang-analyzer-valist.Uninitialized
+WarningsAsErrors: 'clang-analyzer-*'
+HeaderFilterRegex: '.*/include/.*'

@@ -44,6 +44,8 @@ EOF
 echo ">> Deploying to $TARGET"
 ssh "${CM[@]}" "$TARGET" 'mkdir -p ~/bin ~/lib'
 scp "${CM[@]}" "$BIN" "$LAUNCHER" "$TARGET:bin/"
+# The launcher's name is taken here, on the client, by design.
+# shellcheck disable=SC2029
 ssh "${CM[@]}" "$TARGET" "mv ~/bin/$(basename "$LAUNCHER") ~/bin/wifi-analyzer && chmod 755 ~/bin/wifi-analyzer ~/bin/wifi_spectrum_analyzer"
 
 case "$WPALIB_HOST" in

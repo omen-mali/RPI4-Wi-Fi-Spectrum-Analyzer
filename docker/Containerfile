@@ -6,6 +6,9 @@
 # bind-mounted at /opt/qnx800, with the license directory (~/.qnx) at
 # /root/.qnx. See scripts/qnx-build.sh.
 #
+# gcc and clang are for the host unit tests (scripts/host-test.sh), which run
+# here without the SDP mounted.
+#
 #   container build --arch amd64 -t qnx800-build -f docker/Containerfile docker
 #   docker build --platform linux/amd64 -t qnx800-build -f docker/Containerfile docker
 
@@ -15,6 +18,7 @@ ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
         bash ca-certificates cmake file make ninja-build python3 \
+        gcc clang libc6-dev \
  && rm -rf /var/lib/apt/lists/*
 
 ENV QNX_SDP=/opt/qnx800

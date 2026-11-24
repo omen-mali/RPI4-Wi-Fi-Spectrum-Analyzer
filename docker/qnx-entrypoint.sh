@@ -1,11 +1,11 @@
 #!/bin/bash
-# Source the mounted QNX SDP environment, then run the given command.
+# Source the mounted QNX SDP environment (if any), then run the given command.
 set -e
 
+# Without the SDP mounted (host unit tests, scripts/host-test.sh) there's
+# nothing to source: run the command as is.
 if [ ! -f "${QNX_SDP}/qnxsdp-env.sh" ]; then
-    echo "error: QNX SDP not found at ${QNX_SDP}." >&2
-    echo "       Mount it, e.g. -v \$HOME/qnx800:${QNX_SDP}" >&2
-    exit 1
+    exec "$@"
 fi
 if [ ! -d "${HOME}/.qnx/license" ]; then
     echo "warning: no QNX license in ${HOME}/.qnx -- qcc will refuse to run." >&2

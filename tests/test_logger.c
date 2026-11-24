@@ -31,22 +31,46 @@ static void test_format(void)
     CHECK(y >= 2024 && mo >= 1 && mo <= 12 && ms >= 0 && ms <= 999);
 }
 
+/* Sum of the "[logger] N message(s) dropped: ring full" reports in log. */
+static long reported_drops(const char *log)
+{
+    long dropped = 0;
+    for (const char *p = log; (p = strstr(p, "[logger] ")) != NULL; p++) {
+        unsigned long n;
+        if (sscanf(p, "[logger] %lu message(s) dropped: ring full", &n) == 1) {
+            dropped += (long)n;
+        }
+    }
+    return dropped;
+}
+
+#define ORDER_LINES 1000   /* more than LOG_RING_ENTRIES, so drops may happen */
+
 static void test_order_preserved(void)
 {
     log_capture_begin();
-    for (int i = 0; i < 1000; i++) {
+    for (int i = 0; i < ORDER_LINES; i++) {
         LOG_INF("seq=%d", i);
     }
     const char *log = log_capture_end();
 
-    int next = 0, ok = 1;
+    /*
+     * A burst this size can outrun the writer, and the logger then drops
+     * the newest lines. Whatever arrives must still be in order, and every
+     * line must be either written or reported dropped.
+     */
+    int delivered = 0, last = -1, ok = 1;
     for (const char *p = log; (p = strstr(p, "seq=")) != NULL; p += 4) {
-        if (atoi(p + 4) != next++) {
+        int seq = atoi(p + 4);
+        if (seq <= last) {
             ok = 0;
         }
+        last = seq;
+        delivered++;
     }
     CHECK(ok);
-    CHECK_EQ_INT(next, 1000);
+    CHECK(delivered > 0);
+    CHECK_EQ_INT(delivered + reported_drops(log), ORDER_LINES);
 }
 
 #define WRITERS 4
@@ -74,19 +98,9 @@ static void test_overflow_reports_drops(void)
     }
     const char *log = log_capture_end();
 
-    long lines = 0, dropped = 0;
-    for (const char *p = log; *p; ) {
-        const char *eol = strchr(p, '\n');
-        if (!eol) {
-            break;
-        }
-        unsigned long n;
-        if (strstr(p, "] w") && strstr(p, "] w") < eol) {
-            lines++;
-        } else if (sscanf(p, "[logger] %lu message(s) dropped: ring full", &n) == 1) {
-            dropped += (long)n;
-        }
-        p = eol + 1;
+    long lines = 0, dropped = reported_drops(log);
+    for (const char *p = log; (p = strstr(p, "] w")) != NULL; p += 3) {
+        lines++;
     }
     /* Either everything arrived, or the drops were all reported. */
     CHECK_EQ_INT(lines + dropped, WRITERS * LINES_PER_WRITER);

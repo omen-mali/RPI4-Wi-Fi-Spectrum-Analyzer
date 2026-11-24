@@ -8,7 +8,8 @@
 #   scripts/qnx-build.sh shell      # interactive shell with the SDP env loaded
 #   scripts/qnx-build.sh rebuild-image
 #
-# Environment overrides:
+# Environment overrides (QNX_SDP_DIR and QNX_CONFIG_DIR can also be set in
+# local.env, see local.env.example):
 #   QNX_SDP_DIR        host SDP install       (default: ~/qnx800)
 #   QNX_CONFIG_DIR     host license/config    (default: ~/.qnx)
 #   CONTAINER_RUNTIME  container | docker     (default: auto-detect)
@@ -17,6 +18,9 @@
 set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source=scripts/local-env.sh
+. "$REPO/scripts/local-env.sh"
+wsa_load_local_env
 SDP="${QNX_SDP_DIR:-$HOME/qnx800}"
 QNXCFG="${QNX_CONFIG_DIR:-$HOME/.qnx}"
 IMAGE="${QNX_BUILD_IMAGE:-qnx800-build:latest}"

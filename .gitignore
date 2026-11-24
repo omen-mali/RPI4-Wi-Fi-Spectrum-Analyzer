@@ -53,3 +53,6 @@ Makefile
 Thumbs.db
 ehthumbs.db
 desktop.ini
+
+## Setup-specific settings (see local.env.example)
+/local.env

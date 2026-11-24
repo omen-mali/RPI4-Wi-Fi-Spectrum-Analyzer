@@ -123,9 +123,12 @@ ls -l /var/run/wpa_supplicant/   # should contain the bcm0 control socket
 ### 3. Transfer the Binary
 
 ```bash
-scripts/deploy.sh                          # default target: qnxuser@qnx-wifi-analyzer.local
-scripts/deploy.sh qnxuser@<PI_IP>
+scripts/deploy.sh qnxuser@<PI_IP>          # or omit it and set WSA_PI in local.env
 ```
+
+Settings that belong to your setup (the Pi's address, the regulatory country, the SDP location) are
+read from `local.env` at the repo root, which git ignores, or from the file `WSA_LOCAL_ENV` names.
+Copy `local.env.example` to start one.
 
 This installs `~/bin/wifi_spectrum_analyzer`, a `~/bin/wifi-analyzer` launcher, and (for a dynamic
 build) `~/lib/libwpactrl-2.11.so.1`. Avoid `/tmp`: on this image it's `/data/tmp` and gets cleaned at boot.

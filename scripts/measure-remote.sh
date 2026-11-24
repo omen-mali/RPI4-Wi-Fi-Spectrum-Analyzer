@@ -1,7 +1,11 @@
 #!/bin/sh
 # Runs on the Pi (QNX ksh). Captures analyzer logs for timing analysis.
 #
-# Usage: sh measure-remote.sh [seconds_per_phase] [ncpu] [profile]
+# Usage: [WSA_IFACE=bcm0] [WSA_COUNTRY=XX] sh measure-remote.sh [seconds_per_phase] [ncpu] [profile]
+#
+# The app runs with "-i $WSA_IFACE" (default bcm0) and, when WSA_COUNTRY is
+# set, "-c $WSA_COUNTRY". Otherwise with its built-in country default.
+# scripts/measure-timing.sh passes both from local.env.
 #
 # Profiles (phase = name / CPU load / wpa_supplicant priority / app args):
 #   default   baseline        no load   (unchanged)  -
@@ -9,6 +13,7 @@
 #   followup  hr-idle         no load   (unchanged)  -T 1000
 #             hr-load         NCPU hogs (unchanged)  -T 1000
 #             hr-load-wpa14   NCPU hogs 14r          -T 1000
+#   smoke     smoke           no load   (unchanged)  -    (scripts/ci-local.sh)
 #
 # "NCPU hogs" are busy loops at the user's default priority (10 RR): below the
 # scanner (FIFO 15) and equal to the analyzer thread and wpa_supplicant (RR 10).
@@ -21,7 +26,7 @@ DUR=${1:-600}
 NCPU=${2:-4}
 PROFILE=${3:-default}
 APP=$HOME/bin/wifi-analyzer
-APP_ARGS_BASE="-i bcm0 -c CA"
+APP_ARGS_BASE="-i ${WSA_IFACE:-bcm0}${WSA_COUNTRY:+ -c $WSA_COUNTRY}"
 WPA_NAME=wpa_supplicant-2.11
 WPA_DEFAULT_PRIO=10r
 OUT=$HOME/measure/$(date +%Y%m%d-%H%M%S)
@@ -35,8 +40,8 @@ esac
 [ "$DUR" -ge 10 ] || { echo "error: seconds_per_phase must be >= 10"; exit 2; }
 
 case "$PROFILE" in
-    default|followup) ;;
-    *) echo "error: unknown profile '$PROFILE' (default|followup)"; exit 2 ;;
+    default|followup|smoke) ;;
+    *) echo "error: unknown profile '$PROFILE' (default|followup|smoke)"; exit 2 ;;
 esac
 
 mkdir -p "$OUT" || exit 1
@@ -147,6 +152,9 @@ case "$PROFILE" in
         run_phase hr-idle       0 -   -T 1000
         run_phase hr-load       1 -   -T 1000
         run_phase hr-load-wpa14 1 14r -T 1000
+        ;;
+    smoke)
+        run_phase smoke         0 -
         ;;
 esac
 

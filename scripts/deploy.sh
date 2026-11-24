@@ -6,14 +6,18 @@
 # dynamically linked build needs libwpactrl-2.11.so.1 next to it (~/lib).
 #
 # Usage:
-#   scripts/deploy.sh [user@host]      (default: qnxuser@qnx-wifi-analyzer.local)
+#   scripts/deploy.sh [user@host]      (default: WSA_PI from local.env)
 # Then on the Pi:
-#   sudo ~/bin/wifi-analyzer [-i bcm0] [-c CA]
+#   sudo ~/bin/wifi-analyzer [-i bcm0] [-c <country>]
 set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+# shellcheck source=scripts/local-env.sh
+. "$REPO/scripts/local-env.sh"
+wsa_load_local_env
+wsa_require_pi "${1:-}"
+TARGET="$PI"
 SDP="${QNX_SDP_DIR:-$HOME/qnx800}"
-TARGET="${1:-qnxuser@qnx-wifi-analyzer.local}"
 BUILD="$REPO/build/qnx"
 BIN="$BUILD/wifi_spectrum_analyzer"
 
@@ -33,7 +37,7 @@ LAUNCHER="$(mktemp)"
 trap 'rm -f "$LAUNCHER"' EXIT
 cat >"$LAUNCHER" <<'EOF'
 #!/bin/sh
-# Launcher installed by scripts/deploy.sh. Run as root: sudo ~/bin/wifi-analyzer [-i bcm0] [-c CA]
+# Launcher installed by scripts/deploy.sh. Run as root: sudo ~/bin/wifi-analyzer [-i bcm0] [-c <country>]
 # (sudo strips LD_LIBRARY_PATH, so it's set here, after privilege change.)
 here=$(cd "$(dirname "$0")" && pwd)
 LD_LIBRARY_PATH="$here/../lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
@@ -66,4 +70,4 @@ case "$WPALIB_HOST" in
         ;;
 esac
 
-echo ">> Done. On the Pi:  sudo ~/bin/wifi-analyzer -i bcm0 -c CA"
+echo ">> Done. On the Pi:  sudo ~/bin/wifi-analyzer -i ${WSA_IFACE:-bcm0}${WSA_COUNTRY:+ -c $WSA_COUNTRY}"

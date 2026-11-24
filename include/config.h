@@ -274,7 +274,9 @@ typedef enum {
 } log_level_t;
 
 /** Minimum log level to emit. Messages below this level are suppressed. */
+#ifndef LOG_MIN_LEVEL   /* the host tests build one copy with LOG_WARN */
 #define LOG_MIN_LEVEL  LOG_DEBUG
+#endif
 
 /**
  * Asynchronous logger (logger.c).

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Derive scan-loop timing metrics from wifi_spectrum_analyzer logs.
 
-Usage: analyze-timing.py <phase1.log> [<phase2.log> ...]
+Usage: analyze-timing.py [--json] <phase1.log> [<phase2.log> ...]
 
 Log timestamps are wall-clock with 1 ms resolution, so every metric below
 carries +/-1 ms of quantization (plus the cost of the log call itself).
@@ -25,7 +25,14 @@ Metrics:
   scan duration     C - B   (firmware scan; + up to 100 ms with older polling)
   event->publish    D - C   (SCAN_RESULTS request + parse + publish)
   publish->analysis E - D   (cond-var hand-off to the RR analyzer thread)
+
+--json prints one JSON object keyed by log path instead of the tables. Each
+value has cycles, period_ms (null for relative-sleep builds), overruns, warn,
+error, max_aps (largest N in "Scan complete: N APs found", or 0) and metrics:
+{name: {n, mean, std, min, p50, p99, max} or null}, in milliseconds, with
+the same names and values as the tables.
 """
+import json
 import re
 import statistics
 import sys
@@ -44,6 +51,7 @@ PATTERNS = {
 WAKE = re.compile(r"Wake lateness: (-?\d+) us")
 PERIOD = re.compile(r"fixed-rate, period=(\d+) ms")
 OVERRUN = re.compile(r"overran its \d+ ms period: skipped (\d+)")
+APS = re.compile(r"Scan complete: (\d+) APs found")
 
 
 def ts_ms(stamp):
@@ -55,6 +63,7 @@ def parse(path):
     events["wake_us"] = []
     events["period_ms"] = None
     events["overruns"] = 0
+    events["max_aps"] = 0
     levels = {"WARN": [], "ERROR": []}
     with open(path, errors="replace") as fh:
         for raw in fh:
@@ -73,6 +82,8 @@ def parse(path):
                 events["period_ms"] = float(p.group(1))
             elif (o := OVERRUN.search(msg)):
                 events["overruns"] += int(o.group(1))
+            elif (a := APS.search(msg)):
+                events["max_aps"] = max(events["max_aps"], int(a.group(1)))
     return events, levels
 
 
@@ -127,6 +138,20 @@ def metrics(events):
     return m
 
 
+def summary(path):
+    """The --json summary of one log."""
+    events, levels = parse(path)
+    return {
+        "cycles": len(events["A"]),
+        "period_ms": events["period_ms"],
+        "overruns": events["overruns"],
+        "warn": len(levels["WARN"]),
+        "error": len(levels["ERROR"]),
+        "max_aps": events["max_aps"],
+        "metrics": {name: stats(vals) for name, vals in metrics(events).items()},
+    }
+
+
 def main(paths):
     print(__doc__.split("\n\n")[2].strip())
     print()
@@ -158,6 +183,13 @@ def main(paths):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
+    args = sys.argv[1:]
+    as_json = bool(args) and args[0] == "--json"
+    if as_json:
+        args = args[1:]
+    if not args:
         sys.exit(__doc__)
-    main(sys.argv[1:])
+    if as_json:
+        print(json.dumps({path: summary(path) for path in args}, indent=2))
+    else:
+        main(args)

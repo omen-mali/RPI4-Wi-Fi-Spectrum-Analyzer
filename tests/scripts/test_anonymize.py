@@ -79,6 +79,8 @@ class AnonymizeLogTest(unittest.TestCase):
         self.assertNotIn("192.0.2.10", out)
         self.assertNotIn("12345678-aaaa", out)
         self.assertIn("ssid=net-01\n", out)
+        self.assertIn("bssid=02:00:00:00:00:01\n", out)     # mapped once, not twice
+        self.assertIn("address=02:00:00:00:00:02\n", out)
         self.assertIn("wpa_state=COMPLETED", out)
         for mac in MAC_RE.findall(out):
             self.assertTrue(mac.startswith("02:00:00:"), mac)

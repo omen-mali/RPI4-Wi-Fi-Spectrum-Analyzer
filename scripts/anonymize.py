@@ -80,7 +80,8 @@ def anonymize_log(text, mapper):
                 value = mapper.uuid(value)
             else:
                 value = mapper.mac(value) if MAC_RE.fullmatch(value) else "02:00:00:00:00:00"
-            line = "%s=%s" % (key, value)
+            out.append("%s=%s" % (key, value))
+            continue
         out.append(mapper.macs_in(line))
     return "\n".join(out)
 

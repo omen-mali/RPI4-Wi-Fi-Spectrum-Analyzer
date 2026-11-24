@@ -1,0 +1,769 @@
+[2026-11-20 19:32:28.511] [INFO] [main.c:368] === Wi-Fi Spectrum Analyzer v0.2.0 starting ===
+[2026-11-20 19:32:28.512] [INFO] [main.c:164] QNX privilege setup
+[2026-11-20 19:32:28.512] [INFO] [main.c:171] QNX privilege setup (PRIORITY) successful
+[2026-11-20 19:32:28.512] [INFO] [main.c:179] QNX privilege setup (IO) successful
+[2026-11-20 19:32:28.512] [INFO] [wifi_scanner.c:627] Initializing Wi-Fi scanner (ctrl_path=/var/run/wpa_supplicant/bcm0, period=10000 ms)
+[2026-11-20 19:32:28.513] [DEBUG] [wifi_scanner.c:383] Sending wpa_supplicant command: STATUS
+[2026-11-20 19:32:28.513] [INFO] [wifi_scanner.c:694] wpa_supplicant STATUS at init:
+bssid=02:00:00:00:00:01
+freq=2432
+ssid=net-01
+id=0
+mode=station
+pairwise_cipher=CCMP
+group_cipher=CCMP
+key_mgmt=WPA2-PSK
+wpa_state=COMPLETED
+address=02:00:00:00:00:02
+uuid=00000000-0000-0000-0000-000000000001
+
+[2026-11-20 19:32:28.513] [INFO] [wifi_scanner.c:700] Wi-Fi scanner initialized successfully
+[2026-11-20 19:32:28.513] [DEBUG] [wifi_scanner.c:383] Sending wpa_supplicant command: GET country
+[2026-11-20 19:32:28.514] [WARN] [main.c:411] wpa_supplicant has no country set -- the radio uses the world domain (passive on many 5 GHz channels). Add 'country=CA' to /boot/wpa_supplicant.conf and reboot.
+[2026-11-20 19:32:28.514] [INFO] [channel_analyzer.c:409] Initializing channel analyzer (country=CA)
+[2026-11-20 19:32:28.514] [INFO] [channel_analyzer.c:442] Channel analyzer initialized
+[2026-11-20 19:32:28.514] [INFO] [thread_manager.c:54] Creating thread 'wifi_scanner' (policy=1, priority=15, stack=65536)
+[2026-11-20 19:32:28.514] [INFO] [wifi_scanner.c:754] Scanner thread started (fixed-rate, period=10000 ms)
+[2026-11-20 19:32:28.514] [INFO] [thread_manager.c:132] Thread 'wifi_scanner' created successfully (tid=3)
+[2026-11-20 19:32:28.514] [INFO] [wifi_scanner.c:757] Wake timer: high-resolution, tolerance=1000 ns (system tick 1000000 ns)
+[2026-11-20 19:32:28.514] [INFO] [thread_manager.c:54] Creating thread 'channel_analyzer' (policy=2, priority=10, stack=65536)
+[2026-11-20 19:32:28.514] [DEBUG] [wifi_scanner.c:383] Sending wpa_supplicant command: SCAN
+[2026-11-20 19:32:28.514] [INFO] [thread_manager.c:132] Thread 'channel_analyzer' created successfully (tid=4)
+[2026-11-20 19:32:28.514] [INFO] [channel_analyzer.c:451] Analyzer thread started
+[2026-11-20 19:32:28.514] [INFO] [main.c:475] Application running. Press Ctrl+C or send SIGTERM to stop.
+[2026-11-20 19:32:28.514] [DEBUG] [wifi_scanner.c:783] SCAN accepted
+[2026-11-20 19:32:33.567] [DEBUG] [wifi_scanner.c:574] Monitor event: <3>CTRL-EVENT-SCAN-RESULTS 
+[2026-11-20 19:32:33.567] [DEBUG] [wifi_scanner.c:577] Scan complete event received
+[2026-11-20 19:32:33.567] [DEBUG] [wifi_scanner.c:383] Sending wpa_supplicant command: SCAN_RESULTS
+[2026-11-20 19:32:33.567] [INFO] [wifi_scanner.c:825] Scan complete: 10 APs found
+[2026-11-20 19:32:33.568] [INFO] [channel_analyzer.c:489] Analysis complete: Best 2.4GHz=ch6 (score=87.0), Best 5GHz=ch36 (score=85.0)
+[2026-11-20 19:32:33.568] [DEBUG] [channel_analyzer.c:496]   Ch   1 (2412 MHz) [2.4G]: APs=1, avg=-72dBm, score=38.4
+[2026-11-20 19:32:33.568] [DEBUG] [channel_analyzer.c:496]   Ch   2 (2417 MHz) [2.4G]: APs=0, avg=0dBm, score=68.0
+[2026-11-20 19:32:33.568] [DEBUG] [channel_analyzer.c:496]   Ch   3 (2422 MHz) [2.4G]: APs=0, avg=0dBm, score=68.0
+[2026-11-20 19:32:33.568] [DEBUG] [channel_analyzer.c:496]   Ch   4 (2427 MHz) [2.4G]: APs=0, avg=0dBm, score=68.0
+[2026-11-20 19:32:33.568] [DEBUG] [channel_analyzer.c:496]   Ch   5 (2432 MHz) [2.4G]: APs=1, avg=-50dBm, score=23.6
+[2026-11-20 19:32:33.568] [DEBUG] [channel_analyzer.c:496]   Ch   6 (2437 MHz) [2.4G]: APs=0, avg=0dBm, score=87.0
+[2026-11-20 19:32:33.568] [DEBUG] [channel_analyzer.c:496]   Ch   7 (2442 MHz) [2.4G]: APs=0, avg=0dBm, score=72.0
+[2026-11-20 19:32:33.568] [DEBUG] [channel_analyzer.c:496]   Ch   8 (2447 MHz) [2.4G]: APs=0, avg=0dBm, score=72.0
+[2026-11-20 19:32:33.568] [DEBUG] [channel_analyzer.c:496]   Ch   9 (2452 MHz) [2.4G]: APs=0, avg=0dBm, score=72.0
+[2026-11-20 19:32:33.568] [DEBUG] [channel_analyzer.c:496]   Ch  10 (2457 MHz) [2.4G]: APs=0, avg=0dBm, score=72.0
+[2026-11-20 19:32:33.568] [DEBUG] [channel_analyzer.c:496]   Ch  11 (2462 MHz) [2.4G]: APs=1, avg=-52dBm, score=40.6
+[2026-11-20 19:32:33.568] [DEBUG] [channel_analyzer.c:496]   Ch  36 (5180 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:32:33.568] [DEBUG] [channel_analyzer.c:496]   Ch  40 (5200 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:32:33.568] [DEBUG] [channel_analyzer.c:496]   Ch  44 (5220 MHz) [5G]: APs=1, avg=-80dBm, score=30.4
+[2026-11-20 19:32:33.568] [DEBUG] [channel_analyzer.c:496]   Ch  48 (5240 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:32:33.568] [DEBUG] [channel_analyzer.c:496]   Ch  52 (5260 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:32:33.568] [DEBUG] [channel_analyzer.c:496]   Ch  56 (5280 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:32:33.568] [DEBUG] [channel_analyzer.c:496]   Ch  60 (5300 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:32:33.568] [DEBUG] [channel_analyzer.c:496]   Ch  64 (5320 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:32:33.568] [DEBUG] [channel_analyzer.c:496]   Ch 100 (5500 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:32:33.568] [DEBUG] [channel_analyzer.c:496]   Ch 104 (5520 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:32:33.568] [DEBUG] [channel_analyzer.c:496]   Ch 108 (5540 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:32:33.568] [DEBUG] [channel_analyzer.c:496]   Ch 112 (5560 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:32:33.568] [DEBUG] [channel_analyzer.c:496]   Ch 116 (5580 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:32:33.568] [DEBUG] [channel_analyzer.c:496]   Ch 132 (5660 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:32:33.568] [DEBUG] [channel_analyzer.c:496]   Ch 136 (5680 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:32:33.568] [DEBUG] [channel_analyzer.c:496]   Ch 140 (5700 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:32:33.568] [DEBUG] [channel_analyzer.c:496]   Ch 144 (5720 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:32:33.568] [DEBUG] [channel_analyzer.c:496]   Ch 149 (5745 MHz) [5G]: APs=3, avg=-83dBm, score=17.9
+[2026-11-20 19:32:33.568] [DEBUG] [channel_analyzer.c:496]   Ch 153 (5765 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:32:33.568] [DEBUG] [channel_analyzer.c:496]   Ch 157 (5785 MHz) [5G]: APs=1, avg=-87dBm, score=30.3
+[2026-11-20 19:32:33.568] [DEBUG] [channel_analyzer.c:496]   Ch 161 (5805 MHz) [5G]: APs=2, avg=-63dBm, score=22.1
+[2026-11-20 19:32:33.568] [DEBUG] [channel_analyzer.c:496]   Ch 165 (5825 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:32:38.514] [DEBUG] [wifi_scanner.c:872] Wake lateness: 9 us
+[2026-11-20 19:32:38.514] [DEBUG] [wifi_scanner.c:383] Sending wpa_supplicant command: SCAN
+[2026-11-20 19:32:38.514] [DEBUG] [wifi_scanner.c:783] SCAN accepted
+[2026-11-20 19:32:43.558] [DEBUG] [wifi_scanner.c:574] Monitor event: <3>CTRL-EVENT-SCAN-RESULTS 
+[2026-11-20 19:32:43.558] [DEBUG] [wifi_scanner.c:577] Scan complete event received
+[2026-11-20 19:32:43.558] [DEBUG] [wifi_scanner.c:383] Sending wpa_supplicant command: SCAN_RESULTS
+[2026-11-20 19:32:43.558] [INFO] [wifi_scanner.c:825] Scan complete: 15 APs found
+[2026-11-20 19:32:43.558] [INFO] [channel_analyzer.c:489] Analysis complete: Best 2.4GHz=ch6 (score=87.0), Best 5GHz=ch36 (score=85.0)
+[2026-11-20 19:32:43.558] [DEBUG] [channel_analyzer.c:496]   Ch   1 (2412 MHz) [2.4G]: APs=3, avg=-71dBm, score=25.9
+[2026-11-20 19:32:43.558] [DEBUG] [channel_analyzer.c:496]   Ch   2 (2417 MHz) [2.4G]: APs=0, avg=0dBm, score=52.0
+[2026-11-20 19:32:43.558] [DEBUG] [channel_analyzer.c:496]   Ch   3 (2422 MHz) [2.4G]: APs=0, avg=0dBm, score=56.0
+[2026-11-20 19:32:43.558] [DEBUG] [channel_analyzer.c:496]   Ch   4 (2427 MHz) [2.4G]: APs=0, avg=0dBm, score=60.0
+[2026-11-20 19:32:43.558] [DEBUG] [channel_analyzer.c:496]   Ch   5 (2432 MHz) [2.4G]: APs=1, avg=-50dBm, score=19.6
+[2026-11-20 19:32:43.558] [DEBUG] [channel_analyzer.c:496]   Ch   6 (2437 MHz) [2.4G]: APs=0, avg=0dBm, score=87.0
+[2026-11-20 19:32:43.558] [DEBUG] [channel_analyzer.c:496]   Ch   7 (2442 MHz) [2.4G]: APs=0, avg=0dBm, score=68.0
+[2026-11-20 19:32:43.558] [DEBUG] [channel_analyzer.c:496]   Ch   8 (2447 MHz) [2.4G]: APs=0, avg=0dBm, score=64.0
+[2026-11-20 19:32:43.558] [DEBUG] [channel_analyzer.c:496]   Ch   9 (2452 MHz) [2.4G]: APs=0, avg=0dBm, score=60.0
+[2026-11-20 19:32:43.558] [DEBUG] [channel_analyzer.c:496]   Ch  10 (2457 MHz) [2.4G]: APs=0, avg=0dBm, score=56.0
+[2026-11-20 19:32:43.558] [DEBUG] [channel_analyzer.c:496]   Ch  11 (2462 MHz) [2.4G]: APs=3, avg=-57dBm, score=28.0
+[2026-11-20 19:32:43.558] [DEBUG] [channel_analyzer.c:496]   Ch  36 (5180 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:32:43.558] [DEBUG] [channel_analyzer.c:496]   Ch  40 (5200 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:32:43.558] [DEBUG] [channel_analyzer.c:496]   Ch  44 (5220 MHz) [5G]: APs=1, avg=-80dBm, score=30.4
+[2026-11-20 19:32:43.558] [DEBUG] [channel_analyzer.c:496]   Ch  48 (5240 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:32:43.558] [DEBUG] [channel_analyzer.c:496]   Ch  52 (5260 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:32:43.558] [DEBUG] [channel_analyzer.c:496]   Ch  56 (5280 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:32:43.558] [DEBUG] [channel_analyzer.c:496]   Ch  60 (5300 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:32:43.558] [DEBUG] [channel_analyzer.c:496]   Ch  64 (5320 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:32:43.558] [DEBUG] [channel_analyzer.c:496]   Ch 100 (5500 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:32:43.559] [DEBUG] [channel_analyzer.c:496]   Ch 104 (5520 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:32:43.559] [DEBUG] [channel_analyzer.c:496]   Ch 108 (5540 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:32:43.559] [DEBUG] [channel_analyzer.c:496]   Ch 112 (5560 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:32:43.559] [DEBUG] [channel_analyzer.c:496]   Ch 116 (5580 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:32:43.559] [DEBUG] [channel_analyzer.c:496]   Ch 132 (5660 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:32:43.559] [DEBUG] [channel_analyzer.c:496]   Ch 136 (5680 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:32:43.559] [DEBUG] [channel_analyzer.c:496]   Ch 140 (5700 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:32:43.559] [DEBUG] [channel_analyzer.c:496]   Ch 144 (5720 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:32:43.559] [DEBUG] [channel_analyzer.c:496]   Ch 149 (5745 MHz) [5G]: APs=3, avg=-85dBm, score=17.8
+[2026-11-20 19:32:43.559] [DEBUG] [channel_analyzer.c:496]   Ch 153 (5765 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:32:43.559] [DEBUG] [channel_analyzer.c:496]   Ch 157 (5785 MHz) [5G]: APs=2, avg=-87dBm, score=22.0
+[2026-11-20 19:32:43.559] [DEBUG] [channel_analyzer.c:496]   Ch 161 (5805 MHz) [5G]: APs=2, avg=-65dBm, score=22.1
+[2026-11-20 19:32:43.559] [DEBUG] [channel_analyzer.c:496]   Ch 165 (5825 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:32:48.514] [DEBUG] [wifi_scanner.c:872] Wake lateness: 8 us
+[2026-11-20 19:32:48.514] [DEBUG] [wifi_scanner.c:383] Sending wpa_supplicant command: SCAN
+[2026-11-20 19:32:48.514] [DEBUG] [wifi_scanner.c:783] SCAN accepted
+[2026-11-20 19:32:53.551] [DEBUG] [wifi_scanner.c:574] Monitor event: <3>CTRL-EVENT-SCAN-RESULTS 
+[2026-11-20 19:32:53.551] [DEBUG] [wifi_scanner.c:577] Scan complete event received
+[2026-11-20 19:32:53.551] [DEBUG] [wifi_scanner.c:383] Sending wpa_supplicant command: SCAN_RESULTS
+[2026-11-20 19:32:53.551] [INFO] [wifi_scanner.c:825] Scan complete: 17 APs found
+[2026-11-20 19:32:53.551] [INFO] [channel_analyzer.c:489] Analysis complete: Best 2.4GHz=ch6 (score=87.0), Best 5GHz=ch36 (score=85.0)
+[2026-11-20 19:32:53.551] [DEBUG] [channel_analyzer.c:496]   Ch   1 (2412 MHz) [2.4G]: APs=5, avg=-71dBm, score=21.8
+[2026-11-20 19:32:53.551] [DEBUG] [channel_analyzer.c:496]   Ch   2 (2417 MHz) [2.4G]: APs=0, avg=0dBm, score=36.0
+[2026-11-20 19:32:53.551] [DEBUG] [channel_analyzer.c:496]   Ch   3 (2422 MHz) [2.4G]: APs=0, avg=0dBm, score=44.0
+[2026-11-20 19:32:53.552] [DEBUG] [channel_analyzer.c:496]   Ch   4 (2427 MHz) [2.4G]: APs=0, avg=0dBm, score=52.0
+[2026-11-20 19:32:53.552] [DEBUG] [channel_analyzer.c:496]   Ch   5 (2432 MHz) [2.4G]: APs=1, avg=-50dBm, score=15.6
+[2026-11-20 19:32:53.552] [DEBUG] [channel_analyzer.c:496]   Ch   6 (2437 MHz) [2.4G]: APs=0, avg=0dBm, score=87.0
+[2026-11-20 19:32:53.552] [DEBUG] [channel_analyzer.c:496]   Ch   7 (2442 MHz) [2.4G]: APs=0, avg=0dBm, score=68.0
+[2026-11-20 19:32:53.552] [DEBUG] [channel_analyzer.c:496]   Ch   8 (2447 MHz) [2.4G]: APs=0, avg=0dBm, score=64.0
+[2026-11-20 19:32:53.552] [DEBUG] [channel_analyzer.c:496]   Ch   9 (2452 MHz) [2.4G]: APs=0, avg=0dBm, score=60.0
+[2026-11-20 19:32:53.552] [DEBUG] [channel_analyzer.c:496]   Ch  10 (2457 MHz) [2.4G]: APs=0, avg=0dBm, score=56.0
+[2026-11-20 19:32:53.552] [DEBUG] [channel_analyzer.c:496]   Ch  11 (2462 MHz) [2.4G]: APs=3, avg=-56dBm, score=28.0
+[2026-11-20 19:32:53.552] [DEBUG] [channel_analyzer.c:496]   Ch  36 (5180 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:32:53.552] [DEBUG] [channel_analyzer.c:496]   Ch  40 (5200 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:32:53.552] [DEBUG] [channel_analyzer.c:496]   Ch  44 (5220 MHz) [5G]: APs=1, avg=-81dBm, score=30.4
+[2026-11-20 19:32:53.552] [DEBUG] [channel_analyzer.c:496]   Ch  48 (5240 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:32:53.552] [DEBUG] [channel_analyzer.c:496]   Ch  52 (5260 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:32:53.552] [DEBUG] [channel_analyzer.c:496]   Ch  56 (5280 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:32:53.552] [DEBUG] [channel_analyzer.c:496]   Ch  60 (5300 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:32:53.552] [DEBUG] [channel_analyzer.c:496]   Ch  64 (5320 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:32:53.552] [DEBUG] [channel_analyzer.c:496]   Ch 100 (5500 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:32:53.552] [DEBUG] [channel_analyzer.c:496]   Ch 104 (5520 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:32:53.552] [DEBUG] [channel_analyzer.c:496]   Ch 108 (5540 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:32:53.552] [DEBUG] [channel_analyzer.c:496]   Ch 112 (5560 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:32:53.552] [DEBUG] [channel_analyzer.c:496]   Ch 116 (5580 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:32:53.552] [DEBUG] [channel_analyzer.c:496]   Ch 132 (5660 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:32:53.552] [DEBUG] [channel_analyzer.c:496]   Ch 136 (5680 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:32:53.552] [DEBUG] [channel_analyzer.c:496]   Ch 140 (5700 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:32:53.552] [DEBUG] [channel_analyzer.c:496]   Ch 144 (5720 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:32:53.552] [DEBUG] [channel_analyzer.c:496]   Ch 149 (5745 MHz) [5G]: APs=4, avg=-85dBm, score=15.3
+[2026-11-20 19:32:53.552] [DEBUG] [channel_analyzer.c:496]   Ch 153 (5765 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:32:53.552] [DEBUG] [channel_analyzer.c:496]   Ch 157 (5785 MHz) [5G]: APs=1, avg=-88dBm, score=30.3
+[2026-11-20 19:32:53.552] [DEBUG] [channel_analyzer.c:496]   Ch 161 (5805 MHz) [5G]: APs=2, avg=-65dBm, score=22.1
+[2026-11-20 19:32:53.552] [DEBUG] [channel_analyzer.c:496]   Ch 165 (5825 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:32:58.514] [DEBUG] [wifi_scanner.c:872] Wake lateness: 12 us
+[2026-11-20 19:32:58.514] [DEBUG] [wifi_scanner.c:383] Sending wpa_supplicant command: SCAN
+[2026-11-20 19:32:58.514] [DEBUG] [wifi_scanner.c:783] SCAN accepted
+[2026-11-20 19:33:03.559] [DEBUG] [wifi_scanner.c:574] Monitor event: <3>CTRL-EVENT-SCAN-RESULTS 
+[2026-11-20 19:33:03.559] [DEBUG] [wifi_scanner.c:577] Scan complete event received
+[2026-11-20 19:33:03.559] [DEBUG] [wifi_scanner.c:383] Sending wpa_supplicant command: SCAN_RESULTS
+[2026-11-20 19:33:03.559] [INFO] [wifi_scanner.c:825] Scan complete: 15 APs found
+[2026-11-20 19:33:03.559] [INFO] [channel_analyzer.c:489] Analysis complete: Best 2.4GHz=ch6 (score=87.0), Best 5GHz=ch36 (score=85.0)
+[2026-11-20 19:33:03.559] [DEBUG] [channel_analyzer.c:496]   Ch   1 (2412 MHz) [2.4G]: APs=4, avg=-71dBm, score=23.4
+[2026-11-20 19:33:03.559] [DEBUG] [channel_analyzer.c:496]   Ch   2 (2417 MHz) [2.4G]: APs=0, avg=0dBm, score=44.0
+[2026-11-20 19:33:03.559] [DEBUG] [channel_analyzer.c:496]   Ch   3 (2422 MHz) [2.4G]: APs=0, avg=0dBm, score=50.0
+[2026-11-20 19:33:03.560] [DEBUG] [channel_analyzer.c:496]   Ch   4 (2427 MHz) [2.4G]: APs=0, avg=0dBm, score=56.0
+[2026-11-20 19:33:03.560] [DEBUG] [channel_analyzer.c:496]   Ch   5 (2432 MHz) [2.4G]: APs=1, avg=-49dBm, score=17.6
+[2026-11-20 19:33:03.560] [DEBUG] [channel_analyzer.c:496]   Ch   6 (2437 MHz) [2.4G]: APs=0, avg=0dBm, score=87.0
+[2026-11-20 19:33:03.560] [DEBUG] [channel_analyzer.c:496]   Ch   7 (2442 MHz) [2.4G]: APs=0, avg=0dBm, score=68.0
+[2026-11-20 19:33:03.560] [DEBUG] [channel_analyzer.c:496]   Ch   8 (2447 MHz) [2.4G]: APs=0, avg=0dBm, score=64.0
+[2026-11-20 19:33:03.560] [DEBUG] [channel_analyzer.c:496]   Ch   9 (2452 MHz) [2.4G]: APs=0, avg=0dBm, score=60.0
+[2026-11-20 19:33:03.560] [DEBUG] [channel_analyzer.c:496]   Ch  10 (2457 MHz) [2.4G]: APs=0, avg=0dBm, score=56.0
+[2026-11-20 19:33:03.560] [DEBUG] [channel_analyzer.c:496]   Ch  11 (2462 MHz) [2.4G]: APs=3, avg=-57dBm, score=28.0
+[2026-11-20 19:33:03.560] [DEBUG] [channel_analyzer.c:496]   Ch  36 (5180 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:33:03.560] [DEBUG] [channel_analyzer.c:496]   Ch  40 (5200 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:33:03.560] [DEBUG] [channel_analyzer.c:496]   Ch  44 (5220 MHz) [5G]: APs=1, avg=-81dBm, score=30.4
+[2026-11-20 19:33:03.560] [DEBUG] [channel_analyzer.c:496]   Ch  48 (5240 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:33:03.560] [DEBUG] [channel_analyzer.c:496]   Ch  52 (5260 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:03.560] [DEBUG] [channel_analyzer.c:496]   Ch  56 (5280 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:03.560] [DEBUG] [channel_analyzer.c:496]   Ch  60 (5300 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:03.560] [DEBUG] [channel_analyzer.c:496]   Ch  64 (5320 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:03.560] [DEBUG] [channel_analyzer.c:496]   Ch 100 (5500 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:03.560] [DEBUG] [channel_analyzer.c:496]   Ch 104 (5520 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:03.560] [DEBUG] [channel_analyzer.c:496]   Ch 108 (5540 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:03.560] [DEBUG] [channel_analyzer.c:496]   Ch 112 (5560 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:03.560] [DEBUG] [channel_analyzer.c:496]   Ch 116 (5580 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:03.560] [DEBUG] [channel_analyzer.c:496]   Ch 132 (5660 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:03.560] [DEBUG] [channel_analyzer.c:496]   Ch 136 (5680 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:03.560] [DEBUG] [channel_analyzer.c:496]   Ch 140 (5700 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:03.560] [DEBUG] [channel_analyzer.c:496]   Ch 144 (5720 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:03.560] [DEBUG] [channel_analyzer.c:496]   Ch 149 (5745 MHz) [5G]: APs=3, avg=-84dBm, score=17.9
+[2026-11-20 19:33:03.560] [DEBUG] [channel_analyzer.c:496]   Ch 153 (5765 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:33:03.560] [DEBUG] [channel_analyzer.c:496]   Ch 157 (5785 MHz) [5G]: APs=1, avg=-89dBm, score=30.3
+[2026-11-20 19:33:03.560] [DEBUG] [channel_analyzer.c:496]   Ch 161 (5805 MHz) [5G]: APs=2, avg=-65dBm, score=22.1
+[2026-11-20 19:33:03.560] [DEBUG] [channel_analyzer.c:496]   Ch 165 (5825 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:33:08.514] [DEBUG] [wifi_scanner.c:872] Wake lateness: 7 us
+[2026-11-20 19:33:08.514] [DEBUG] [wifi_scanner.c:383] Sending wpa_supplicant command: SCAN
+[2026-11-20 19:33:08.514] [DEBUG] [wifi_scanner.c:783] SCAN accepted
+[2026-11-20 19:33:13.559] [DEBUG] [wifi_scanner.c:574] Monitor event: <3>CTRL-EVENT-SCAN-RESULTS 
+[2026-11-20 19:33:13.559] [DEBUG] [wifi_scanner.c:577] Scan complete event received
+[2026-11-20 19:33:13.559] [DEBUG] [wifi_scanner.c:383] Sending wpa_supplicant command: SCAN_RESULTS
+[2026-11-20 19:33:13.568] [INFO] [wifi_scanner.c:825] Scan complete: 12 APs found
+[2026-11-20 19:33:13.568] [INFO] [channel_analyzer.c:489] Analysis complete: Best 2.4GHz=ch6 (score=87.0), Best 5GHz=ch36 (score=85.0)
+[2026-11-20 19:33:13.568] [DEBUG] [channel_analyzer.c:496]   Ch   1 (2412 MHz) [2.4G]: APs=2, avg=-71dBm, score=30.1
+[2026-11-20 19:33:13.568] [DEBUG] [channel_analyzer.c:496]   Ch   2 (2417 MHz) [2.4G]: APs=0, avg=0dBm, score=60.0
+[2026-11-20 19:33:13.568] [DEBUG] [channel_analyzer.c:496]   Ch   3 (2422 MHz) [2.4G]: APs=0, avg=0dBm, score=62.0
+[2026-11-20 19:33:13.569] [DEBUG] [channel_analyzer.c:496]   Ch   4 (2427 MHz) [2.4G]: APs=0, avg=0dBm, score=64.0
+[2026-11-20 19:33:13.569] [DEBUG] [channel_analyzer.c:496]   Ch   5 (2432 MHz) [2.4G]: APs=1, avg=-49dBm, score=21.6
+[2026-11-20 19:33:13.569] [DEBUG] [channel_analyzer.c:496]   Ch   6 (2437 MHz) [2.4G]: APs=0, avg=0dBm, score=87.0
+[2026-11-20 19:33:13.569] [DEBUG] [channel_analyzer.c:496]   Ch   7 (2442 MHz) [2.4G]: APs=0, avg=0dBm, score=70.0
+[2026-11-20 19:33:13.569] [DEBUG] [channel_analyzer.c:496]   Ch   8 (2447 MHz) [2.4G]: APs=0, avg=0dBm, score=68.0
+[2026-11-20 19:33:13.569] [DEBUG] [channel_analyzer.c:496]   Ch   9 (2452 MHz) [2.4G]: APs=0, avg=0dBm, score=66.0
+[2026-11-20 19:33:13.569] [DEBUG] [channel_analyzer.c:496]   Ch  10 (2457 MHz) [2.4G]: APs=0, avg=0dBm, score=64.0
+[2026-11-20 19:33:13.569] [DEBUG] [channel_analyzer.c:496]   Ch  11 (2462 MHz) [2.4G]: APs=2, avg=-51dBm, score=32.2
+[2026-11-20 19:33:13.569] [DEBUG] [channel_analyzer.c:496]   Ch  36 (5180 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:33:13.569] [DEBUG] [channel_analyzer.c:496]   Ch  40 (5200 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:33:13.569] [DEBUG] [channel_analyzer.c:496]   Ch  44 (5220 MHz) [5G]: APs=1, avg=-81dBm, score=30.4
+[2026-11-20 19:33:13.569] [DEBUG] [channel_analyzer.c:496]   Ch  48 (5240 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:33:13.569] [DEBUG] [channel_analyzer.c:496]   Ch  52 (5260 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:13.569] [DEBUG] [channel_analyzer.c:496]   Ch  56 (5280 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:13.569] [DEBUG] [channel_analyzer.c:496]   Ch  60 (5300 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:13.569] [DEBUG] [channel_analyzer.c:496]   Ch  64 (5320 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:13.569] [DEBUG] [channel_analyzer.c:496]   Ch 100 (5500 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:13.569] [DEBUG] [channel_analyzer.c:496]   Ch 104 (5520 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:13.569] [DEBUG] [channel_analyzer.c:496]   Ch 108 (5540 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:13.569] [DEBUG] [channel_analyzer.c:496]   Ch 112 (5560 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:13.569] [DEBUG] [channel_analyzer.c:496]   Ch 116 (5580 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:13.569] [DEBUG] [channel_analyzer.c:496]   Ch 132 (5660 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:13.569] [DEBUG] [channel_analyzer.c:496]   Ch 136 (5680 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:13.569] [DEBUG] [channel_analyzer.c:496]   Ch 140 (5700 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:13.569] [DEBUG] [channel_analyzer.c:496]   Ch 144 (5720 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:13.569] [DEBUG] [channel_analyzer.c:496]   Ch 149 (5745 MHz) [5G]: APs=3, avg=-84dBm, score=17.9
+[2026-11-20 19:33:13.569] [DEBUG] [channel_analyzer.c:496]   Ch 153 (5765 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:33:13.569] [DEBUG] [channel_analyzer.c:496]   Ch 157 (5785 MHz) [5G]: APs=1, avg=-89dBm, score=30.3
+[2026-11-20 19:33:13.569] [DEBUG] [channel_analyzer.c:496]   Ch 161 (5805 MHz) [5G]: APs=2, avg=-65dBm, score=22.1
+[2026-11-20 19:33:13.569] [DEBUG] [channel_analyzer.c:496]   Ch 165 (5825 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:33:18.514] [DEBUG] [wifi_scanner.c:872] Wake lateness: 7 us
+[2026-11-20 19:33:18.514] [DEBUG] [wifi_scanner.c:383] Sending wpa_supplicant command: SCAN
+[2026-11-20 19:33:18.514] [DEBUG] [wifi_scanner.c:783] SCAN accepted
+[2026-11-20 19:33:23.557] [DEBUG] [wifi_scanner.c:574] Monitor event: <3>CTRL-EVENT-SCAN-RESULTS 
+[2026-11-20 19:33:23.557] [DEBUG] [wifi_scanner.c:577] Scan complete event received
+[2026-11-20 19:33:23.557] [DEBUG] [wifi_scanner.c:383] Sending wpa_supplicant command: SCAN_RESULTS
+[2026-11-20 19:33:23.557] [INFO] [wifi_scanner.c:825] Scan complete: 14 APs found
+[2026-11-20 19:33:23.557] [INFO] [channel_analyzer.c:489] Analysis complete: Best 2.4GHz=ch6 (score=87.0), Best 5GHz=ch36 (score=85.0)
+[2026-11-20 19:33:23.557] [DEBUG] [channel_analyzer.c:496]   Ch   1 (2412 MHz) [2.4G]: APs=4, avg=-70dBm, score=23.4
+[2026-11-20 19:33:23.557] [DEBUG] [channel_analyzer.c:496]   Ch   2 (2417 MHz) [2.4G]: APs=0, avg=0dBm, score=44.0
+[2026-11-20 19:33:23.557] [DEBUG] [channel_analyzer.c:496]   Ch   3 (2422 MHz) [2.4G]: APs=0, avg=0dBm, score=50.0
+[2026-11-20 19:33:23.557] [DEBUG] [channel_analyzer.c:496]   Ch   4 (2427 MHz) [2.4G]: APs=0, avg=0dBm, score=56.0
+[2026-11-20 19:33:23.558] [DEBUG] [channel_analyzer.c:496]   Ch   5 (2432 MHz) [2.4G]: APs=1, avg=-50dBm, score=17.6
+[2026-11-20 19:33:23.558] [DEBUG] [channel_analyzer.c:496]   Ch   6 (2437 MHz) [2.4G]: APs=0, avg=0dBm, score=87.0
+[2026-11-20 19:33:23.558] [DEBUG] [channel_analyzer.c:496]   Ch   7 (2442 MHz) [2.4G]: APs=0, avg=0dBm, score=70.0
+[2026-11-20 19:33:23.558] [DEBUG] [channel_analyzer.c:496]   Ch   8 (2447 MHz) [2.4G]: APs=0, avg=0dBm, score=68.0
+[2026-11-20 19:33:23.558] [DEBUG] [channel_analyzer.c:496]   Ch   9 (2452 MHz) [2.4G]: APs=0, avg=0dBm, score=66.0
+[2026-11-20 19:33:23.558] [DEBUG] [channel_analyzer.c:496]   Ch  10 (2457 MHz) [2.4G]: APs=0, avg=0dBm, score=64.0
+[2026-11-20 19:33:23.558] [DEBUG] [channel_analyzer.c:496]   Ch  11 (2462 MHz) [2.4G]: APs=2, avg=-51dBm, score=32.2
+[2026-11-20 19:33:23.558] [DEBUG] [channel_analyzer.c:496]   Ch  36 (5180 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:33:23.558] [DEBUG] [channel_analyzer.c:496]   Ch  40 (5200 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:33:23.558] [DEBUG] [channel_analyzer.c:496]   Ch  44 (5220 MHz) [5G]: APs=1, avg=-81dBm, score=30.4
+[2026-11-20 19:33:23.558] [DEBUG] [channel_analyzer.c:496]   Ch  48 (5240 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:33:23.558] [DEBUG] [channel_analyzer.c:496]   Ch  52 (5260 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:23.558] [DEBUG] [channel_analyzer.c:496]   Ch  56 (5280 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:23.558] [DEBUG] [channel_analyzer.c:496]   Ch  60 (5300 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:23.558] [DEBUG] [channel_analyzer.c:496]   Ch  64 (5320 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:23.558] [DEBUG] [channel_analyzer.c:496]   Ch 100 (5500 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:23.558] [DEBUG] [channel_analyzer.c:496]   Ch 104 (5520 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:23.558] [DEBUG] [channel_analyzer.c:496]   Ch 108 (5540 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:23.558] [DEBUG] [channel_analyzer.c:496]   Ch 112 (5560 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:23.558] [DEBUG] [channel_analyzer.c:496]   Ch 116 (5580 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:23.558] [DEBUG] [channel_analyzer.c:496]   Ch 132 (5660 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:23.558] [DEBUG] [channel_analyzer.c:496]   Ch 136 (5680 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:23.558] [DEBUG] [channel_analyzer.c:496]   Ch 140 (5700 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:23.558] [DEBUG] [channel_analyzer.c:496]   Ch 144 (5720 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:23.558] [DEBUG] [channel_analyzer.c:496]   Ch 149 (5745 MHz) [5G]: APs=4, avg=-84dBm, score=15.4
+[2026-11-20 19:33:23.558] [DEBUG] [channel_analyzer.c:496]   Ch 153 (5765 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:33:23.558] [DEBUG] [channel_analyzer.c:496]   Ch 157 (5785 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:33:23.558] [DEBUG] [channel_analyzer.c:496]   Ch 161 (5805 MHz) [5G]: APs=2, avg=-65dBm, score=22.1
+[2026-11-20 19:33:23.558] [DEBUG] [channel_analyzer.c:496]   Ch 165 (5825 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:33:28.514] [DEBUG] [wifi_scanner.c:872] Wake lateness: 10 us
+[2026-11-20 19:33:28.514] [DEBUG] [wifi_scanner.c:383] Sending wpa_supplicant command: SCAN
+[2026-11-20 19:33:28.514] [DEBUG] [wifi_scanner.c:783] SCAN accepted
+[2026-11-20 19:33:33.580] [DEBUG] [wifi_scanner.c:574] Monitor event: <3>CTRL-EVENT-SCAN-RESULTS 
+[2026-11-20 19:33:33.580] [DEBUG] [wifi_scanner.c:577] Scan complete event received
+[2026-11-20 19:33:33.580] [DEBUG] [wifi_scanner.c:383] Sending wpa_supplicant command: SCAN_RESULTS
+[2026-11-20 19:33:33.580] [INFO] [wifi_scanner.c:825] Scan complete: 13 APs found
+[2026-11-20 19:33:33.580] [INFO] [channel_analyzer.c:489] Analysis complete: Best 2.4GHz=ch6 (score=87.0), Best 5GHz=ch36 (score=85.0)
+[2026-11-20 19:33:33.580] [DEBUG] [channel_analyzer.c:496]   Ch   1 (2412 MHz) [2.4G]: APs=4, avg=-71dBm, score=23.4
+[2026-11-20 19:33:33.580] [DEBUG] [channel_analyzer.c:496]   Ch   2 (2417 MHz) [2.4G]: APs=0, avg=0dBm, score=44.0
+[2026-11-20 19:33:33.580] [DEBUG] [channel_analyzer.c:496]   Ch   3 (2422 MHz) [2.4G]: APs=0, avg=0dBm, score=50.0
+[2026-11-20 19:33:33.580] [DEBUG] [channel_analyzer.c:496]   Ch   4 (2427 MHz) [2.4G]: APs=0, avg=0dBm, score=56.0
+[2026-11-20 19:33:33.580] [DEBUG] [channel_analyzer.c:496]   Ch   5 (2432 MHz) [2.4G]: APs=1, avg=-49dBm, score=17.6
+[2026-11-20 19:33:33.580] [DEBUG] [channel_analyzer.c:496]   Ch   6 (2437 MHz) [2.4G]: APs=0, avg=0dBm, score=87.0
+[2026-11-20 19:33:33.580] [DEBUG] [channel_analyzer.c:496]   Ch   7 (2442 MHz) [2.4G]: APs=0, avg=0dBm, score=70.0
+[2026-11-20 19:33:33.580] [DEBUG] [channel_analyzer.c:496]   Ch   8 (2447 MHz) [2.4G]: APs=0, avg=0dBm, score=68.0
+[2026-11-20 19:33:33.580] [DEBUG] [channel_analyzer.c:496]   Ch   9 (2452 MHz) [2.4G]: APs=0, avg=0dBm, score=66.0
+[2026-11-20 19:33:33.580] [DEBUG] [channel_analyzer.c:496]   Ch  10 (2457 MHz) [2.4G]: APs=0, avg=0dBm, score=64.0
+[2026-11-20 19:33:33.581] [DEBUG] [channel_analyzer.c:496]   Ch  11 (2462 MHz) [2.4G]: APs=2, avg=-51dBm, score=32.2
+[2026-11-20 19:33:33.581] [DEBUG] [channel_analyzer.c:496]   Ch  36 (5180 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:33:33.581] [DEBUG] [channel_analyzer.c:496]   Ch  40 (5200 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:33:33.581] [DEBUG] [channel_analyzer.c:496]   Ch  44 (5220 MHz) [5G]: APs=1, avg=-81dBm, score=30.4
+[2026-11-20 19:33:33.581] [DEBUG] [channel_analyzer.c:496]   Ch  48 (5240 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:33:33.581] [DEBUG] [channel_analyzer.c:496]   Ch  52 (5260 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:33.581] [DEBUG] [channel_analyzer.c:496]   Ch  56 (5280 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:33.581] [DEBUG] [channel_analyzer.c:496]   Ch  60 (5300 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:33.581] [DEBUG] [channel_analyzer.c:496]   Ch  64 (5320 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:33.581] [DEBUG] [channel_analyzer.c:496]   Ch 100 (5500 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:33.581] [DEBUG] [channel_analyzer.c:496]   Ch 104 (5520 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:33.581] [DEBUG] [channel_analyzer.c:496]   Ch 108 (5540 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:33.581] [DEBUG] [channel_analyzer.c:496]   Ch 112 (5560 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:33.581] [DEBUG] [channel_analyzer.c:496]   Ch 116 (5580 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:33.581] [DEBUG] [channel_analyzer.c:496]   Ch 132 (5660 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:33.581] [DEBUG] [channel_analyzer.c:496]   Ch 136 (5680 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:33.581] [DEBUG] [channel_analyzer.c:496]   Ch 140 (5700 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:33.581] [DEBUG] [channel_analyzer.c:496]   Ch 144 (5720 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:33.581] [DEBUG] [channel_analyzer.c:496]   Ch 149 (5745 MHz) [5G]: APs=3, avg=-85dBm, score=17.8
+[2026-11-20 19:33:33.581] [DEBUG] [channel_analyzer.c:496]   Ch 153 (5765 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:33:33.581] [DEBUG] [channel_analyzer.c:496]   Ch 157 (5785 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:33:33.581] [DEBUG] [channel_analyzer.c:496]   Ch 161 (5805 MHz) [5G]: APs=2, avg=-64dBm, score=22.1
+[2026-11-20 19:33:33.581] [DEBUG] [channel_analyzer.c:496]   Ch 165 (5825 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:33:38.514] [DEBUG] [wifi_scanner.c:872] Wake lateness: 8 us
+[2026-11-20 19:33:38.514] [DEBUG] [wifi_scanner.c:383] Sending wpa_supplicant command: SCAN
+[2026-11-20 19:33:38.514] [DEBUG] [wifi_scanner.c:783] SCAN accepted
+[2026-11-20 19:33:43.573] [DEBUG] [wifi_scanner.c:574] Monitor event: <3>CTRL-EVENT-SCAN-RESULTS 
+[2026-11-20 19:33:43.573] [DEBUG] [wifi_scanner.c:577] Scan complete event received
+[2026-11-20 19:33:43.573] [DEBUG] [wifi_scanner.c:383] Sending wpa_supplicant command: SCAN_RESULTS
+[2026-11-20 19:33:43.574] [INFO] [wifi_scanner.c:825] Scan complete: 14 APs found
+[2026-11-20 19:33:43.574] [INFO] [channel_analyzer.c:489] Analysis complete: Best 2.4GHz=ch6 (score=87.0), Best 5GHz=ch36 (score=85.0)
+[2026-11-20 19:33:43.574] [DEBUG] [channel_analyzer.c:496]   Ch   1 (2412 MHz) [2.4G]: APs=5, avg=-71dBm, score=21.8
+[2026-11-20 19:33:43.574] [DEBUG] [channel_analyzer.c:496]   Ch   2 (2417 MHz) [2.4G]: APs=0, avg=0dBm, score=36.0
+[2026-11-20 19:33:43.574] [DEBUG] [channel_analyzer.c:496]   Ch   3 (2422 MHz) [2.4G]: APs=0, avg=0dBm, score=44.0
+[2026-11-20 19:33:43.574] [DEBUG] [channel_analyzer.c:496]   Ch   4 (2427 MHz) [2.4G]: APs=0, avg=0dBm, score=52.0
+[2026-11-20 19:33:43.574] [DEBUG] [channel_analyzer.c:496]   Ch   5 (2432 MHz) [2.4G]: APs=1, avg=-47dBm, score=15.6
+[2026-11-20 19:33:43.574] [DEBUG] [channel_analyzer.c:496]   Ch   6 (2437 MHz) [2.4G]: APs=0, avg=0dBm, score=87.0
+[2026-11-20 19:33:43.574] [DEBUG] [channel_analyzer.c:496]   Ch   7 (2442 MHz) [2.4G]: APs=0, avg=0dBm, score=70.0
+[2026-11-20 19:33:43.574] [DEBUG] [channel_analyzer.c:496]   Ch   8 (2447 MHz) [2.4G]: APs=0, avg=0dBm, score=68.0
+[2026-11-20 19:33:43.574] [DEBUG] [channel_analyzer.c:496]   Ch   9 (2452 MHz) [2.4G]: APs=0, avg=0dBm, score=66.0
+[2026-11-20 19:33:43.574] [DEBUG] [channel_analyzer.c:496]   Ch  10 (2457 MHz) [2.4G]: APs=0, avg=0dBm, score=64.0
+[2026-11-20 19:33:43.574] [DEBUG] [channel_analyzer.c:496]   Ch  11 (2462 MHz) [2.4G]: APs=2, avg=-52dBm, score=32.2
+[2026-11-20 19:33:43.574] [DEBUG] [channel_analyzer.c:496]   Ch  36 (5180 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:33:43.574] [DEBUG] [channel_analyzer.c:496]   Ch  40 (5200 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:33:43.574] [DEBUG] [channel_analyzer.c:496]   Ch  44 (5220 MHz) [5G]: APs=1, avg=-80dBm, score=30.4
+[2026-11-20 19:33:43.574] [DEBUG] [channel_analyzer.c:496]   Ch  48 (5240 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:33:43.574] [DEBUG] [channel_analyzer.c:496]   Ch  52 (5260 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:43.574] [DEBUG] [channel_analyzer.c:496]   Ch  56 (5280 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:43.574] [DEBUG] [channel_analyzer.c:496]   Ch  60 (5300 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:43.574] [DEBUG] [channel_analyzer.c:496]   Ch  64 (5320 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:43.574] [DEBUG] [channel_analyzer.c:496]   Ch 100 (5500 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:43.574] [DEBUG] [channel_analyzer.c:496]   Ch 104 (5520 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:43.574] [DEBUG] [channel_analyzer.c:496]   Ch 108 (5540 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:43.574] [DEBUG] [channel_analyzer.c:496]   Ch 112 (5560 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:43.574] [DEBUG] [channel_analyzer.c:496]   Ch 116 (5580 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:43.574] [DEBUG] [channel_analyzer.c:496]   Ch 132 (5660 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:43.574] [DEBUG] [channel_analyzer.c:496]   Ch 136 (5680 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:43.574] [DEBUG] [channel_analyzer.c:496]   Ch 140 (5700 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:43.574] [DEBUG] [channel_analyzer.c:496]   Ch 144 (5720 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:43.574] [DEBUG] [channel_analyzer.c:496]   Ch 149 (5745 MHz) [5G]: APs=3, avg=-84dBm, score=17.9
+[2026-11-20 19:33:43.574] [DEBUG] [channel_analyzer.c:496]   Ch 153 (5765 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:33:43.575] [DEBUG] [channel_analyzer.c:496]   Ch 157 (5785 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:33:43.575] [DEBUG] [channel_analyzer.c:496]   Ch 161 (5805 MHz) [5G]: APs=2, avg=-64dBm, score=22.1
+[2026-11-20 19:33:43.575] [DEBUG] [channel_analyzer.c:496]   Ch 165 (5825 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:33:48.514] [DEBUG] [wifi_scanner.c:872] Wake lateness: 8 us
+[2026-11-20 19:33:48.514] [DEBUG] [wifi_scanner.c:383] Sending wpa_supplicant command: SCAN
+[2026-11-20 19:33:48.514] [DEBUG] [wifi_scanner.c:783] SCAN accepted
+[2026-11-20 19:33:53.560] [DEBUG] [wifi_scanner.c:574] Monitor event: <3>CTRL-EVENT-SCAN-RESULTS 
+[2026-11-20 19:33:53.560] [DEBUG] [wifi_scanner.c:577] Scan complete event received
+[2026-11-20 19:33:53.560] [DEBUG] [wifi_scanner.c:383] Sending wpa_supplicant command: SCAN_RESULTS
+[2026-11-20 19:33:53.561] [INFO] [wifi_scanner.c:825] Scan complete: 16 APs found
+[2026-11-20 19:33:53.561] [INFO] [channel_analyzer.c:489] Analysis complete: Best 2.4GHz=ch6 (score=87.0), Best 5GHz=ch36 (score=85.0)
+[2026-11-20 19:33:53.561] [DEBUG] [channel_analyzer.c:496]   Ch   1 (2412 MHz) [2.4G]: APs=5, avg=-70dBm, score=21.8
+[2026-11-20 19:33:53.561] [DEBUG] [channel_analyzer.c:496]   Ch   2 (2417 MHz) [2.4G]: APs=0, avg=0dBm, score=36.0
+[2026-11-20 19:33:53.561] [DEBUG] [channel_analyzer.c:496]   Ch   3 (2422 MHz) [2.4G]: APs=0, avg=0dBm, score=44.0
+[2026-11-20 19:33:53.561] [DEBUG] [channel_analyzer.c:496]   Ch   4 (2427 MHz) [2.4G]: APs=0, avg=0dBm, score=52.0
+[2026-11-20 19:33:53.561] [DEBUG] [channel_analyzer.c:496]   Ch   5 (2432 MHz) [2.4G]: APs=1, avg=-48dBm, score=15.6
+[2026-11-20 19:33:53.561] [DEBUG] [channel_analyzer.c:496]   Ch   6 (2437 MHz) [2.4G]: APs=0, avg=0dBm, score=87.0
+[2026-11-20 19:33:53.561] [DEBUG] [channel_analyzer.c:496]   Ch   7 (2442 MHz) [2.4G]: APs=0, avg=0dBm, score=68.0
+[2026-11-20 19:33:53.561] [DEBUG] [channel_analyzer.c:496]   Ch   8 (2447 MHz) [2.4G]: APs=0, avg=0dBm, score=64.0
+[2026-11-20 19:33:53.561] [DEBUG] [channel_analyzer.c:496]   Ch   9 (2452 MHz) [2.4G]: APs=0, avg=0dBm, score=60.0
+[2026-11-20 19:33:53.561] [DEBUG] [channel_analyzer.c:496]   Ch  10 (2457 MHz) [2.4G]: APs=0, avg=0dBm, score=56.0
+[2026-11-20 19:33:53.561] [DEBUG] [channel_analyzer.c:496]   Ch  11 (2462 MHz) [2.4G]: APs=3, avg=-58dBm, score=28.0
+[2026-11-20 19:33:53.561] [DEBUG] [channel_analyzer.c:496]   Ch  36 (5180 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:33:53.561] [DEBUG] [channel_analyzer.c:496]   Ch  40 (5200 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:33:53.561] [DEBUG] [channel_analyzer.c:496]   Ch  44 (5220 MHz) [5G]: APs=1, avg=-82dBm, score=30.4
+[2026-11-20 19:33:53.561] [DEBUG] [channel_analyzer.c:496]   Ch  48 (5240 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:33:53.561] [DEBUG] [channel_analyzer.c:496]   Ch  52 (5260 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:53.561] [DEBUG] [channel_analyzer.c:496]   Ch  56 (5280 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:53.561] [DEBUG] [channel_analyzer.c:496]   Ch  60 (5300 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:53.561] [DEBUG] [channel_analyzer.c:496]   Ch  64 (5320 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:53.561] [DEBUG] [channel_analyzer.c:496]   Ch 100 (5500 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:53.561] [DEBUG] [channel_analyzer.c:496]   Ch 104 (5520 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:53.561] [DEBUG] [channel_analyzer.c:496]   Ch 108 (5540 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:53.561] [DEBUG] [channel_analyzer.c:496]   Ch 112 (5560 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:53.561] [DEBUG] [channel_analyzer.c:496]   Ch 116 (5580 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:53.561] [DEBUG] [channel_analyzer.c:496]   Ch 132 (5660 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:53.561] [DEBUG] [channel_analyzer.c:496]   Ch 136 (5680 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:53.561] [DEBUG] [channel_analyzer.c:496]   Ch 140 (5700 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:53.561] [DEBUG] [channel_analyzer.c:496]   Ch 144 (5720 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:33:53.561] [DEBUG] [channel_analyzer.c:496]   Ch 149 (5745 MHz) [5G]: APs=3, avg=-84dBm, score=17.9
+[2026-11-20 19:33:53.561] [DEBUG] [channel_analyzer.c:496]   Ch 153 (5765 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:33:53.561] [DEBUG] [channel_analyzer.c:496]   Ch 157 (5785 MHz) [5G]: APs=1, avg=-87dBm, score=30.3
+[2026-11-20 19:33:53.561] [DEBUG] [channel_analyzer.c:496]   Ch 161 (5805 MHz) [5G]: APs=2, avg=-61dBm, score=22.2
+[2026-11-20 19:33:53.561] [DEBUG] [channel_analyzer.c:496]   Ch 165 (5825 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:33:58.514] [DEBUG] [wifi_scanner.c:872] Wake lateness: 8 us
+[2026-11-20 19:33:58.514] [DEBUG] [wifi_scanner.c:383] Sending wpa_supplicant command: SCAN
+[2026-11-20 19:33:58.514] [DEBUG] [wifi_scanner.c:783] SCAN accepted
+[2026-11-20 19:34:03.556] [DEBUG] [wifi_scanner.c:574] Monitor event: <3>CTRL-EVENT-SCAN-RESULTS 
+[2026-11-20 19:34:03.556] [DEBUG] [wifi_scanner.c:577] Scan complete event received
+[2026-11-20 19:34:03.556] [DEBUG] [wifi_scanner.c:383] Sending wpa_supplicant command: SCAN_RESULTS
+[2026-11-20 19:34:03.557] [INFO] [wifi_scanner.c:825] Scan complete: 17 APs found
+[2026-11-20 19:34:03.557] [INFO] [channel_analyzer.c:489] Analysis complete: Best 2.4GHz=ch6 (score=87.0), Best 5GHz=ch36 (score=85.0)
+[2026-11-20 19:34:03.557] [DEBUG] [channel_analyzer.c:496]   Ch   1 (2412 MHz) [2.4G]: APs=5, avg=-72dBm, score=21.7
+[2026-11-20 19:34:03.557] [DEBUG] [channel_analyzer.c:496]   Ch   2 (2417 MHz) [2.4G]: APs=0, avg=0dBm, score=36.0
+[2026-11-20 19:34:03.557] [DEBUG] [channel_analyzer.c:496]   Ch   3 (2422 MHz) [2.4G]: APs=0, avg=0dBm, score=44.0
+[2026-11-20 19:34:03.557] [DEBUG] [channel_analyzer.c:496]   Ch   4 (2427 MHz) [2.4G]: APs=0, avg=0dBm, score=52.0
+[2026-11-20 19:34:03.557] [DEBUG] [channel_analyzer.c:496]   Ch   5 (2432 MHz) [2.4G]: APs=1, avg=-47dBm, score=15.6
+[2026-11-20 19:34:03.557] [DEBUG] [channel_analyzer.c:496]   Ch   6 (2437 MHz) [2.4G]: APs=0, avg=0dBm, score=87.0
+[2026-11-20 19:34:03.557] [DEBUG] [channel_analyzer.c:496]   Ch   7 (2442 MHz) [2.4G]: APs=0, avg=0dBm, score=68.0
+[2026-11-20 19:34:03.557] [DEBUG] [channel_analyzer.c:496]   Ch   8 (2447 MHz) [2.4G]: APs=0, avg=0dBm, score=64.0
+[2026-11-20 19:34:03.557] [DEBUG] [channel_analyzer.c:496]   Ch   9 (2452 MHz) [2.4G]: APs=0, avg=0dBm, score=60.0
+[2026-11-20 19:34:03.557] [DEBUG] [channel_analyzer.c:496]   Ch  10 (2457 MHz) [2.4G]: APs=0, avg=0dBm, score=56.0
+[2026-11-20 19:34:03.557] [DEBUG] [channel_analyzer.c:496]   Ch  11 (2462 MHz) [2.4G]: APs=3, avg=-58dBm, score=28.0
+[2026-11-20 19:34:03.557] [DEBUG] [channel_analyzer.c:496]   Ch  36 (5180 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:34:03.557] [DEBUG] [channel_analyzer.c:496]   Ch  40 (5200 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:34:03.557] [DEBUG] [channel_analyzer.c:496]   Ch  44 (5220 MHz) [5G]: APs=1, avg=-79dBm, score=30.4
+[2026-11-20 19:34:03.557] [DEBUG] [channel_analyzer.c:496]   Ch  48 (5240 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:34:03.557] [DEBUG] [channel_analyzer.c:496]   Ch  52 (5260 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:03.557] [DEBUG] [channel_analyzer.c:496]   Ch  56 (5280 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:03.557] [DEBUG] [channel_analyzer.c:496]   Ch  60 (5300 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:03.557] [DEBUG] [channel_analyzer.c:496]   Ch  64 (5320 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:03.557] [DEBUG] [channel_analyzer.c:496]   Ch 100 (5500 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:03.557] [DEBUG] [channel_analyzer.c:496]   Ch 104 (5520 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:03.557] [DEBUG] [channel_analyzer.c:496]   Ch 108 (5540 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:03.557] [DEBUG] [channel_analyzer.c:496]   Ch 112 (5560 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:03.557] [DEBUG] [channel_analyzer.c:496]   Ch 116 (5580 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:03.557] [DEBUG] [channel_analyzer.c:496]   Ch 132 (5660 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:03.558] [DEBUG] [channel_analyzer.c:496]   Ch 136 (5680 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:03.558] [DEBUG] [channel_analyzer.c:496]   Ch 140 (5700 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:03.558] [DEBUG] [channel_analyzer.c:496]   Ch 144 (5720 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:03.558] [DEBUG] [channel_analyzer.c:496]   Ch 149 (5745 MHz) [5G]: APs=4, avg=-84dBm, score=15.4
+[2026-11-20 19:34:03.558] [DEBUG] [channel_analyzer.c:496]   Ch 153 (5765 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:34:03.558] [DEBUG] [channel_analyzer.c:496]   Ch 157 (5785 MHz) [5G]: APs=1, avg=-87dBm, score=30.3
+[2026-11-20 19:34:03.558] [DEBUG] [channel_analyzer.c:496]   Ch 161 (5805 MHz) [5G]: APs=2, avg=-62dBm, score=22.1
+[2026-11-20 19:34:03.558] [DEBUG] [channel_analyzer.c:496]   Ch 165 (5825 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:34:08.514] [DEBUG] [wifi_scanner.c:872] Wake lateness: 9 us
+[2026-11-20 19:34:08.514] [DEBUG] [wifi_scanner.c:383] Sending wpa_supplicant command: SCAN
+[2026-11-20 19:34:08.514] [DEBUG] [wifi_scanner.c:783] SCAN accepted
+[2026-11-20 19:34:13.560] [DEBUG] [wifi_scanner.c:574] Monitor event: <3>CTRL-EVENT-SCAN-RESULTS 
+[2026-11-20 19:34:13.560] [DEBUG] [wifi_scanner.c:577] Scan complete event received
+[2026-11-20 19:34:13.560] [DEBUG] [wifi_scanner.c:383] Sending wpa_supplicant command: SCAN_RESULTS
+[2026-11-20 19:34:13.560] [INFO] [wifi_scanner.c:825] Scan complete: 14 APs found
+[2026-11-20 19:34:13.560] [INFO] [channel_analyzer.c:489] Analysis complete: Best 2.4GHz=ch6 (score=87.0), Best 5GHz=ch36 (score=85.0)
+[2026-11-20 19:34:13.560] [DEBUG] [channel_analyzer.c:496]   Ch   1 (2412 MHz) [2.4G]: APs=4, avg=-71dBm, score=23.4
+[2026-11-20 19:34:13.560] [DEBUG] [channel_analyzer.c:496]   Ch   2 (2417 MHz) [2.4G]: APs=0, avg=0dBm, score=44.0
+[2026-11-20 19:34:13.560] [DEBUG] [channel_analyzer.c:496]   Ch   3 (2422 MHz) [2.4G]: APs=0, avg=0dBm, score=50.0
+[2026-11-20 19:34:13.560] [DEBUG] [channel_analyzer.c:496]   Ch   4 (2427 MHz) [2.4G]: APs=0, avg=0dBm, score=56.0
+[2026-11-20 19:34:13.560] [DEBUG] [channel_analyzer.c:496]   Ch   5 (2432 MHz) [2.4G]: APs=1, avg=-54dBm, score=17.5
+[2026-11-20 19:34:13.560] [DEBUG] [channel_analyzer.c:496]   Ch   6 (2437 MHz) [2.4G]: APs=0, avg=0dBm, score=87.0
+[2026-11-20 19:34:13.560] [DEBUG] [channel_analyzer.c:496]   Ch   7 (2442 MHz) [2.4G]: APs=0, avg=0dBm, score=68.0
+[2026-11-20 19:34:13.560] [DEBUG] [channel_analyzer.c:496]   Ch   8 (2447 MHz) [2.4G]: APs=0, avg=0dBm, score=64.0
+[2026-11-20 19:34:13.560] [DEBUG] [channel_analyzer.c:496]   Ch   9 (2452 MHz) [2.4G]: APs=0, avg=0dBm, score=60.0
+[2026-11-20 19:34:13.560] [DEBUG] [channel_analyzer.c:496]   Ch  10 (2457 MHz) [2.4G]: APs=0, avg=0dBm, score=56.0
+[2026-11-20 19:34:13.560] [DEBUG] [channel_analyzer.c:496]   Ch  11 (2462 MHz) [2.4G]: APs=3, avg=-54dBm, score=28.0
+[2026-11-20 19:34:13.560] [DEBUG] [channel_analyzer.c:496]   Ch  36 (5180 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:34:13.560] [DEBUG] [channel_analyzer.c:496]   Ch  40 (5200 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:34:13.561] [DEBUG] [channel_analyzer.c:496]   Ch  44 (5220 MHz) [5G]: APs=1, avg=-80dBm, score=30.4
+[2026-11-20 19:34:13.561] [DEBUG] [channel_analyzer.c:496]   Ch  48 (5240 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:34:13.561] [DEBUG] [channel_analyzer.c:496]   Ch  52 (5260 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:13.561] [DEBUG] [channel_analyzer.c:496]   Ch  56 (5280 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:13.561] [DEBUG] [channel_analyzer.c:496]   Ch  60 (5300 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:13.561] [DEBUG] [channel_analyzer.c:496]   Ch  64 (5320 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:13.561] [DEBUG] [channel_analyzer.c:496]   Ch 100 (5500 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:13.561] [DEBUG] [channel_analyzer.c:496]   Ch 104 (5520 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:13.561] [DEBUG] [channel_analyzer.c:496]   Ch 108 (5540 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:13.561] [DEBUG] [channel_analyzer.c:496]   Ch 112 (5560 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:13.561] [DEBUG] [channel_analyzer.c:496]   Ch 116 (5580 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:13.561] [DEBUG] [channel_analyzer.c:496]   Ch 132 (5660 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:13.561] [DEBUG] [channel_analyzer.c:496]   Ch 136 (5680 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:13.561] [DEBUG] [channel_analyzer.c:496]   Ch 140 (5700 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:13.561] [DEBUG] [channel_analyzer.c:496]   Ch 144 (5720 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:13.561] [DEBUG] [channel_analyzer.c:496]   Ch 149 (5745 MHz) [5G]: APs=3, avg=-83dBm, score=17.9
+[2026-11-20 19:34:13.561] [DEBUG] [channel_analyzer.c:496]   Ch 153 (5765 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:34:13.561] [DEBUG] [channel_analyzer.c:496]   Ch 157 (5785 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:34:13.561] [DEBUG] [channel_analyzer.c:496]   Ch 161 (5805 MHz) [5G]: APs=2, avg=-61dBm, score=22.2
+[2026-11-20 19:34:13.561] [DEBUG] [channel_analyzer.c:496]   Ch 165 (5825 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:34:18.514] [DEBUG] [wifi_scanner.c:872] Wake lateness: 8 us
+[2026-11-20 19:34:18.514] [DEBUG] [wifi_scanner.c:383] Sending wpa_supplicant command: SCAN
+[2026-11-20 19:34:18.514] [DEBUG] [wifi_scanner.c:783] SCAN accepted
+[2026-11-20 19:34:23.557] [DEBUG] [wifi_scanner.c:574] Monitor event: <3>CTRL-EVENT-SCAN-RESULTS 
+[2026-11-20 19:34:23.557] [DEBUG] [wifi_scanner.c:577] Scan complete event received
+[2026-11-20 19:34:23.557] [DEBUG] [wifi_scanner.c:383] Sending wpa_supplicant command: SCAN_RESULTS
+[2026-11-20 19:34:23.557] [INFO] [wifi_scanner.c:825] Scan complete: 16 APs found
+[2026-11-20 19:34:23.557] [INFO] [channel_analyzer.c:489] Analysis complete: Best 2.4GHz=ch6 (score=87.0), Best 5GHz=ch36 (score=85.0)
+[2026-11-20 19:34:23.557] [DEBUG] [channel_analyzer.c:496]   Ch   1 (2412 MHz) [2.4G]: APs=4, avg=-67dBm, score=23.4
+[2026-11-20 19:34:23.557] [DEBUG] [channel_analyzer.c:496]   Ch   2 (2417 MHz) [2.4G]: APs=0, avg=0dBm, score=44.0
+[2026-11-20 19:34:23.557] [DEBUG] [channel_analyzer.c:496]   Ch   3 (2422 MHz) [2.4G]: APs=0, avg=0dBm, score=50.0
+[2026-11-20 19:34:23.557] [DEBUG] [channel_analyzer.c:496]   Ch   4 (2427 MHz) [2.4G]: APs=0, avg=0dBm, score=56.0
+[2026-11-20 19:34:23.558] [DEBUG] [channel_analyzer.c:496]   Ch   5 (2432 MHz) [2.4G]: APs=1, avg=-44dBm, score=17.7
+[2026-11-20 19:34:23.558] [DEBUG] [channel_analyzer.c:496]   Ch   6 (2437 MHz) [2.4G]: APs=0, avg=0dBm, score=87.0
+[2026-11-20 19:34:23.558] [DEBUG] [channel_analyzer.c:496]   Ch   7 (2442 MHz) [2.4G]: APs=0, avg=0dBm, score=68.0
+[2026-11-20 19:34:23.558] [DEBUG] [channel_analyzer.c:496]   Ch   8 (2447 MHz) [2.4G]: APs=0, avg=0dBm, score=64.0
+[2026-11-20 19:34:23.558] [DEBUG] [channel_analyzer.c:496]   Ch   9 (2452 MHz) [2.4G]: APs=0, avg=0dBm, score=60.0
+[2026-11-20 19:34:23.558] [DEBUG] [channel_analyzer.c:496]   Ch  10 (2457 MHz) [2.4G]: APs=0, avg=0dBm, score=56.0
+[2026-11-20 19:34:23.558] [DEBUG] [channel_analyzer.c:496]   Ch  11 (2462 MHz) [2.4G]: APs=3, avg=-56dBm, score=28.0
+[2026-11-20 19:34:23.558] [DEBUG] [channel_analyzer.c:496]   Ch  36 (5180 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:34:23.558] [DEBUG] [channel_analyzer.c:496]   Ch  40 (5200 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:34:23.558] [DEBUG] [channel_analyzer.c:496]   Ch  44 (5220 MHz) [5G]: APs=1, avg=-81dBm, score=30.4
+[2026-11-20 19:34:23.558] [DEBUG] [channel_analyzer.c:496]   Ch  48 (5240 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:34:23.558] [DEBUG] [channel_analyzer.c:496]   Ch  52 (5260 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:23.558] [DEBUG] [channel_analyzer.c:496]   Ch  56 (5280 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:23.558] [DEBUG] [channel_analyzer.c:496]   Ch  60 (5300 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:23.558] [DEBUG] [channel_analyzer.c:496]   Ch  64 (5320 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:23.558] [DEBUG] [channel_analyzer.c:496]   Ch 100 (5500 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:23.558] [DEBUG] [channel_analyzer.c:496]   Ch 104 (5520 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:23.558] [DEBUG] [channel_analyzer.c:496]   Ch 108 (5540 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:23.558] [DEBUG] [channel_analyzer.c:496]   Ch 112 (5560 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:23.558] [DEBUG] [channel_analyzer.c:496]   Ch 116 (5580 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:23.558] [DEBUG] [channel_analyzer.c:496]   Ch 132 (5660 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:23.558] [DEBUG] [channel_analyzer.c:496]   Ch 136 (5680 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:23.558] [DEBUG] [channel_analyzer.c:496]   Ch 140 (5700 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:23.558] [DEBUG] [channel_analyzer.c:496]   Ch 144 (5720 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:23.558] [DEBUG] [channel_analyzer.c:496]   Ch 149 (5745 MHz) [5G]: APs=4, avg=-83dBm, score=15.4
+[2026-11-20 19:34:23.558] [DEBUG] [channel_analyzer.c:496]   Ch 153 (5765 MHz) [5G]: APs=1, avg=-64dBm, score=30.5
+[2026-11-20 19:34:23.558] [DEBUG] [channel_analyzer.c:496]   Ch 157 (5785 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:34:23.558] [DEBUG] [channel_analyzer.c:496]   Ch 161 (5805 MHz) [5G]: APs=2, avg=-65dBm, score=22.1
+[2026-11-20 19:34:23.558] [DEBUG] [channel_analyzer.c:496]   Ch 165 (5825 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:34:28.514] [DEBUG] [wifi_scanner.c:872] Wake lateness: 9 us
+[2026-11-20 19:34:28.514] [DEBUG] [wifi_scanner.c:383] Sending wpa_supplicant command: SCAN
+[2026-11-20 19:34:28.514] [DEBUG] [wifi_scanner.c:783] SCAN accepted
+[2026-11-20 19:34:33.565] [DEBUG] [wifi_scanner.c:574] Monitor event: <3>CTRL-EVENT-SCAN-RESULTS 
+[2026-11-20 19:34:33.565] [DEBUG] [wifi_scanner.c:577] Scan complete event received
+[2026-11-20 19:34:33.565] [DEBUG] [wifi_scanner.c:383] Sending wpa_supplicant command: SCAN_RESULTS
+[2026-11-20 19:34:33.565] [INFO] [wifi_scanner.c:825] Scan complete: 16 APs found
+[2026-11-20 19:34:33.565] [INFO] [channel_analyzer.c:489] Analysis complete: Best 2.4GHz=ch6 (score=87.0), Best 5GHz=ch36 (score=85.0)
+[2026-11-20 19:34:33.565] [DEBUG] [channel_analyzer.c:496]   Ch   1 (2412 MHz) [2.4G]: APs=4, avg=-69dBm, score=23.4
+[2026-11-20 19:34:33.565] [DEBUG] [channel_analyzer.c:496]   Ch   2 (2417 MHz) [2.4G]: APs=0, avg=0dBm, score=44.0
+[2026-11-20 19:34:33.565] [DEBUG] [channel_analyzer.c:496]   Ch   3 (2422 MHz) [2.4G]: APs=0, avg=0dBm, score=50.0
+[2026-11-20 19:34:33.565] [DEBUG] [channel_analyzer.c:496]   Ch   4 (2427 MHz) [2.4G]: APs=0, avg=0dBm, score=56.0
+[2026-11-20 19:34:33.565] [DEBUG] [channel_analyzer.c:496]   Ch   5 (2432 MHz) [2.4G]: APs=1, avg=-46dBm, score=17.6
+[2026-11-20 19:34:33.565] [DEBUG] [channel_analyzer.c:496]   Ch   6 (2437 MHz) [2.4G]: APs=0, avg=0dBm, score=87.0
+[2026-11-20 19:34:33.566] [DEBUG] [channel_analyzer.c:496]   Ch   7 (2442 MHz) [2.4G]: APs=0, avg=0dBm, score=68.0
+[2026-11-20 19:34:33.566] [DEBUG] [channel_analyzer.c:496]   Ch   8 (2447 MHz) [2.4G]: APs=0, avg=0dBm, score=64.0
+[2026-11-20 19:34:33.566] [DEBUG] [channel_analyzer.c:496]   Ch   9 (2452 MHz) [2.4G]: APs=0, avg=0dBm, score=60.0
+[2026-11-20 19:34:33.566] [DEBUG] [channel_analyzer.c:496]   Ch  10 (2457 MHz) [2.4G]: APs=0, avg=0dBm, score=56.0
+[2026-11-20 19:34:33.566] [DEBUG] [channel_analyzer.c:496]   Ch  11 (2462 MHz) [2.4G]: APs=3, avg=-56dBm, score=28.0
+[2026-11-20 19:34:33.566] [DEBUG] [channel_analyzer.c:496]   Ch  36 (5180 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:34:33.566] [DEBUG] [channel_analyzer.c:496]   Ch  40 (5200 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:34:33.566] [DEBUG] [channel_analyzer.c:496]   Ch  44 (5220 MHz) [5G]: APs=1, avg=-79dBm, score=30.4
+[2026-11-20 19:34:33.566] [DEBUG] [channel_analyzer.c:496]   Ch  48 (5240 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:34:33.566] [DEBUG] [channel_analyzer.c:496]   Ch  52 (5260 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:33.566] [DEBUG] [channel_analyzer.c:496]   Ch  56 (5280 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:33.566] [DEBUG] [channel_analyzer.c:496]   Ch  60 (5300 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:33.566] [DEBUG] [channel_analyzer.c:496]   Ch  64 (5320 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:33.566] [DEBUG] [channel_analyzer.c:496]   Ch 100 (5500 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:33.566] [DEBUG] [channel_analyzer.c:496]   Ch 104 (5520 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:33.566] [DEBUG] [channel_analyzer.c:496]   Ch 108 (5540 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:33.566] [DEBUG] [channel_analyzer.c:496]   Ch 112 (5560 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:33.566] [DEBUG] [channel_analyzer.c:496]   Ch 116 (5580 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:33.566] [DEBUG] [channel_analyzer.c:496]   Ch 132 (5660 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:33.566] [DEBUG] [channel_analyzer.c:496]   Ch 136 (5680 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:33.566] [DEBUG] [channel_analyzer.c:496]   Ch 140 (5700 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:33.566] [DEBUG] [channel_analyzer.c:496]   Ch 144 (5720 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:33.566] [DEBUG] [channel_analyzer.c:496]   Ch 149 (5745 MHz) [5G]: APs=4, avg=-84dBm, score=15.4
+[2026-11-20 19:34:33.566] [DEBUG] [channel_analyzer.c:496]   Ch 153 (5765 MHz) [5G]: APs=1, avg=-64dBm, score=30.5
+[2026-11-20 19:34:33.566] [DEBUG] [channel_analyzer.c:496]   Ch 157 (5785 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:34:33.566] [DEBUG] [channel_analyzer.c:496]   Ch 161 (5805 MHz) [5G]: APs=2, avg=-65dBm, score=22.1
+[2026-11-20 19:34:33.566] [DEBUG] [channel_analyzer.c:496]   Ch 165 (5825 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:34:38.514] [DEBUG] [wifi_scanner.c:872] Wake lateness: 8 us
+[2026-11-20 19:34:38.514] [DEBUG] [wifi_scanner.c:383] Sending wpa_supplicant command: SCAN
+[2026-11-20 19:34:38.514] [DEBUG] [wifi_scanner.c:783] SCAN accepted
+[2026-11-20 19:34:43.560] [DEBUG] [wifi_scanner.c:574] Monitor event: <3>CTRL-EVENT-SCAN-RESULTS 
+[2026-11-20 19:34:43.560] [DEBUG] [wifi_scanner.c:577] Scan complete event received
+[2026-11-20 19:34:43.560] [DEBUG] [wifi_scanner.c:383] Sending wpa_supplicant command: SCAN_RESULTS
+[2026-11-20 19:34:43.560] [INFO] [wifi_scanner.c:825] Scan complete: 14 APs found
+[2026-11-20 19:34:43.560] [INFO] [channel_analyzer.c:489] Analysis complete: Best 2.4GHz=ch6 (score=87.0), Best 5GHz=ch36 (score=85.0)
+[2026-11-20 19:34:43.560] [DEBUG] [channel_analyzer.c:496]   Ch   1 (2412 MHz) [2.4G]: APs=4, avg=-69dBm, score=23.4
+[2026-11-20 19:34:43.560] [DEBUG] [channel_analyzer.c:496]   Ch   2 (2417 MHz) [2.4G]: APs=0, avg=0dBm, score=44.0
+[2026-11-20 19:34:43.560] [DEBUG] [channel_analyzer.c:496]   Ch   3 (2422 MHz) [2.4G]: APs=0, avg=0dBm, score=50.0
+[2026-11-20 19:34:43.560] [DEBUG] [channel_analyzer.c:496]   Ch   4 (2427 MHz) [2.4G]: APs=0, avg=0dBm, score=56.0
+[2026-11-20 19:34:43.560] [DEBUG] [channel_analyzer.c:496]   Ch   5 (2432 MHz) [2.4G]: APs=1, avg=-49dBm, score=17.6
+[2026-11-20 19:34:43.560] [DEBUG] [channel_analyzer.c:496]   Ch   6 (2437 MHz) [2.4G]: APs=0, avg=0dBm, score=87.0
+[2026-11-20 19:34:43.560] [DEBUG] [channel_analyzer.c:496]   Ch   7 (2442 MHz) [2.4G]: APs=0, avg=0dBm, score=68.0
+[2026-11-20 19:34:43.560] [DEBUG] [channel_analyzer.c:496]   Ch   8 (2447 MHz) [2.4G]: APs=0, avg=0dBm, score=64.0
+[2026-11-20 19:34:43.560] [DEBUG] [channel_analyzer.c:496]   Ch   9 (2452 MHz) [2.4G]: APs=0, avg=0dBm, score=60.0
+[2026-11-20 19:34:43.560] [DEBUG] [channel_analyzer.c:496]   Ch  10 (2457 MHz) [2.4G]: APs=0, avg=0dBm, score=56.0
+[2026-11-20 19:34:43.560] [DEBUG] [channel_analyzer.c:496]   Ch  11 (2462 MHz) [2.4G]: APs=3, avg=-55dBm, score=28.0
+[2026-11-20 19:34:43.560] [DEBUG] [channel_analyzer.c:496]   Ch  36 (5180 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:34:43.560] [DEBUG] [channel_analyzer.c:496]   Ch  40 (5200 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:34:43.560] [DEBUG] [channel_analyzer.c:496]   Ch  44 (5220 MHz) [5G]: APs=1, avg=-81dBm, score=30.4
+[2026-11-20 19:34:43.560] [DEBUG] [channel_analyzer.c:496]   Ch  48 (5240 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:34:43.560] [DEBUG] [channel_analyzer.c:496]   Ch  52 (5260 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:43.560] [DEBUG] [channel_analyzer.c:496]   Ch  56 (5280 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:43.560] [DEBUG] [channel_analyzer.c:496]   Ch  60 (5300 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:43.560] [DEBUG] [channel_analyzer.c:496]   Ch  64 (5320 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:43.560] [DEBUG] [channel_analyzer.c:496]   Ch 100 (5500 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:43.560] [DEBUG] [channel_analyzer.c:496]   Ch 104 (5520 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:43.560] [DEBUG] [channel_analyzer.c:496]   Ch 108 (5540 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:43.561] [DEBUG] [channel_analyzer.c:496]   Ch 112 (5560 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:43.561] [DEBUG] [channel_analyzer.c:496]   Ch 116 (5580 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:43.561] [DEBUG] [channel_analyzer.c:496]   Ch 132 (5660 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:43.561] [DEBUG] [channel_analyzer.c:496]   Ch 136 (5680 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:43.561] [DEBUG] [channel_analyzer.c:496]   Ch 140 (5700 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:43.561] [DEBUG] [channel_analyzer.c:496]   Ch 144 (5720 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:43.561] [DEBUG] [channel_analyzer.c:496]   Ch 149 (5745 MHz) [5G]: APs=3, avg=-82dBm, score=17.9
+[2026-11-20 19:34:43.561] [DEBUG] [channel_analyzer.c:496]   Ch 153 (5765 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:34:43.561] [DEBUG] [channel_analyzer.c:496]   Ch 157 (5785 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:34:43.561] [DEBUG] [channel_analyzer.c:496]   Ch 161 (5805 MHz) [5G]: APs=2, avg=-65dBm, score=22.1
+[2026-11-20 19:34:43.561] [DEBUG] [channel_analyzer.c:496]   Ch 165 (5825 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:34:48.514] [DEBUG] [wifi_scanner.c:872] Wake lateness: 9 us
+[2026-11-20 19:34:48.514] [DEBUG] [wifi_scanner.c:383] Sending wpa_supplicant command: SCAN
+[2026-11-20 19:34:48.514] [DEBUG] [wifi_scanner.c:783] SCAN accepted
+[2026-11-20 19:34:53.548] [DEBUG] [wifi_scanner.c:574] Monitor event: <3>CTRL-EVENT-SCAN-RESULTS 
+[2026-11-20 19:34:53.548] [DEBUG] [wifi_scanner.c:577] Scan complete event received
+[2026-11-20 19:34:53.548] [DEBUG] [wifi_scanner.c:383] Sending wpa_supplicant command: SCAN_RESULTS
+[2026-11-20 19:34:53.548] [INFO] [wifi_scanner.c:825] Scan complete: 13 APs found
+[2026-11-20 19:34:53.548] [INFO] [channel_analyzer.c:489] Analysis complete: Best 2.4GHz=ch6 (score=87.0), Best 5GHz=ch36 (score=85.0)
+[2026-11-20 19:34:53.548] [DEBUG] [channel_analyzer.c:496]   Ch   1 (2412 MHz) [2.4G]: APs=5, avg=-70dBm, score=21.8
+[2026-11-20 19:34:53.548] [DEBUG] [channel_analyzer.c:496]   Ch   2 (2417 MHz) [2.4G]: APs=0, avg=0dBm, score=36.0
+[2026-11-20 19:34:53.548] [DEBUG] [channel_analyzer.c:496]   Ch   3 (2422 MHz) [2.4G]: APs=0, avg=0dBm, score=44.0
+[2026-11-20 19:34:53.549] [DEBUG] [channel_analyzer.c:496]   Ch   4 (2427 MHz) [2.4G]: APs=0, avg=0dBm, score=52.0
+[2026-11-20 19:34:53.549] [DEBUG] [channel_analyzer.c:496]   Ch   5 (2432 MHz) [2.4G]: APs=1, avg=-50dBm, score=15.6
+[2026-11-20 19:34:53.549] [DEBUG] [channel_analyzer.c:496]   Ch   6 (2437 MHz) [2.4G]: APs=0, avg=0dBm, score=87.0
+[2026-11-20 19:34:53.549] [DEBUG] [channel_analyzer.c:496]   Ch   7 (2442 MHz) [2.4G]: APs=0, avg=0dBm, score=72.0
+[2026-11-20 19:34:53.549] [DEBUG] [channel_analyzer.c:496]   Ch   8 (2447 MHz) [2.4G]: APs=0, avg=0dBm, score=72.0
+[2026-11-20 19:34:53.549] [DEBUG] [channel_analyzer.c:496]   Ch   9 (2452 MHz) [2.4G]: APs=0, avg=0dBm, score=72.0
+[2026-11-20 19:34:53.549] [DEBUG] [channel_analyzer.c:496]   Ch  10 (2457 MHz) [2.4G]: APs=0, avg=0dBm, score=72.0
+[2026-11-20 19:34:53.549] [DEBUG] [channel_analyzer.c:496]   Ch  11 (2462 MHz) [2.4G]: APs=1, avg=-50dBm, score=40.6
+[2026-11-20 19:34:53.549] [DEBUG] [channel_analyzer.c:496]   Ch  36 (5180 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:34:53.549] [DEBUG] [channel_analyzer.c:496]   Ch  40 (5200 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:34:53.549] [DEBUG] [channel_analyzer.c:496]   Ch  44 (5220 MHz) [5G]: APs=1, avg=-80dBm, score=30.4
+[2026-11-20 19:34:53.549] [DEBUG] [channel_analyzer.c:496]   Ch  48 (5240 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:34:53.549] [DEBUG] [channel_analyzer.c:496]   Ch  52 (5260 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:53.549] [DEBUG] [channel_analyzer.c:496]   Ch  56 (5280 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:53.549] [DEBUG] [channel_analyzer.c:496]   Ch  60 (5300 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:53.549] [DEBUG] [channel_analyzer.c:496]   Ch  64 (5320 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:53.549] [DEBUG] [channel_analyzer.c:496]   Ch 100 (5500 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:53.549] [DEBUG] [channel_analyzer.c:496]   Ch 104 (5520 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:53.549] [DEBUG] [channel_analyzer.c:496]   Ch 108 (5540 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:53.549] [DEBUG] [channel_analyzer.c:496]   Ch 112 (5560 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:53.549] [DEBUG] [channel_analyzer.c:496]   Ch 116 (5580 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:53.549] [DEBUG] [channel_analyzer.c:496]   Ch 132 (5660 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:53.549] [DEBUG] [channel_analyzer.c:496]   Ch 136 (5680 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:53.549] [DEBUG] [channel_analyzer.c:496]   Ch 140 (5700 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:53.549] [DEBUG] [channel_analyzer.c:496]   Ch 144 (5720 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:34:53.549] [DEBUG] [channel_analyzer.c:496]   Ch 149 (5745 MHz) [5G]: APs=3, avg=-83dBm, score=17.9
+[2026-11-20 19:34:53.549] [DEBUG] [channel_analyzer.c:496]   Ch 153 (5765 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:34:53.549] [DEBUG] [channel_analyzer.c:496]   Ch 157 (5785 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:34:53.549] [DEBUG] [channel_analyzer.c:496]   Ch 161 (5805 MHz) [5G]: APs=2, avg=-65dBm, score=22.1
+[2026-11-20 19:34:53.549] [DEBUG] [channel_analyzer.c:496]   Ch 165 (5825 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:34:58.514] [DEBUG] [wifi_scanner.c:872] Wake lateness: 12 us
+[2026-11-20 19:34:58.514] [DEBUG] [wifi_scanner.c:383] Sending wpa_supplicant command: SCAN
+[2026-11-20 19:34:58.514] [DEBUG] [wifi_scanner.c:783] SCAN accepted
+[2026-11-20 19:35:03.566] [DEBUG] [wifi_scanner.c:574] Monitor event: <3>CTRL-EVENT-SCAN-RESULTS 
+[2026-11-20 19:35:03.566] [DEBUG] [wifi_scanner.c:577] Scan complete event received
+[2026-11-20 19:35:03.566] [DEBUG] [wifi_scanner.c:383] Sending wpa_supplicant command: SCAN_RESULTS
+[2026-11-20 19:35:03.566] [INFO] [wifi_scanner.c:825] Scan complete: 13 APs found
+[2026-11-20 19:35:03.566] [INFO] [channel_analyzer.c:489] Analysis complete: Best 2.4GHz=ch6 (score=87.0), Best 5GHz=ch36 (score=85.0)
+[2026-11-20 19:35:03.566] [DEBUG] [channel_analyzer.c:496]   Ch   1 (2412 MHz) [2.4G]: APs=3, avg=-72dBm, score=25.9
+[2026-11-20 19:35:03.566] [DEBUG] [channel_analyzer.c:496]   Ch   2 (2417 MHz) [2.4G]: APs=0, avg=0dBm, score=52.0
+[2026-11-20 19:35:03.567] [DEBUG] [channel_analyzer.c:496]   Ch   3 (2422 MHz) [2.4G]: APs=0, avg=0dBm, score=56.0
+[2026-11-20 19:35:03.567] [DEBUG] [channel_analyzer.c:496]   Ch   4 (2427 MHz) [2.4G]: APs=0, avg=0dBm, score=60.0
+[2026-11-20 19:35:03.567] [DEBUG] [channel_analyzer.c:496]   Ch   5 (2432 MHz) [2.4G]: APs=1, avg=-50dBm, score=19.6
+[2026-11-20 19:35:03.567] [DEBUG] [channel_analyzer.c:496]   Ch   6 (2437 MHz) [2.4G]: APs=0, avg=0dBm, score=87.0
+[2026-11-20 19:35:03.567] [DEBUG] [channel_analyzer.c:496]   Ch   7 (2442 MHz) [2.4G]: APs=0, avg=0dBm, score=70.0
+[2026-11-20 19:35:03.567] [DEBUG] [channel_analyzer.c:496]   Ch   8 (2447 MHz) [2.4G]: APs=0, avg=0dBm, score=68.0
+[2026-11-20 19:35:03.567] [DEBUG] [channel_analyzer.c:496]   Ch   9 (2452 MHz) [2.4G]: APs=0, avg=0dBm, score=66.0
+[2026-11-20 19:35:03.567] [DEBUG] [channel_analyzer.c:496]   Ch  10 (2457 MHz) [2.4G]: APs=0, avg=0dBm, score=64.0
+[2026-11-20 19:35:03.567] [DEBUG] [channel_analyzer.c:496]   Ch  11 (2462 MHz) [2.4G]: APs=2, avg=-57dBm, score=32.2
+[2026-11-20 19:35:03.567] [DEBUG] [channel_analyzer.c:496]   Ch  36 (5180 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:35:03.567] [DEBUG] [channel_analyzer.c:496]   Ch  40 (5200 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:35:03.567] [DEBUG] [channel_analyzer.c:496]   Ch  44 (5220 MHz) [5G]: APs=1, avg=-80dBm, score=30.4
+[2026-11-20 19:35:03.567] [DEBUG] [channel_analyzer.c:496]   Ch  48 (5240 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:35:03.567] [DEBUG] [channel_analyzer.c:496]   Ch  52 (5260 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:35:03.567] [DEBUG] [channel_analyzer.c:496]   Ch  56 (5280 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:35:03.567] [DEBUG] [channel_analyzer.c:496]   Ch  60 (5300 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:35:03.567] [DEBUG] [channel_analyzer.c:496]   Ch  64 (5320 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:35:03.567] [DEBUG] [channel_analyzer.c:496]   Ch 100 (5500 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:35:03.567] [DEBUG] [channel_analyzer.c:496]   Ch 104 (5520 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:35:03.567] [DEBUG] [channel_analyzer.c:496]   Ch 108 (5540 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:35:03.567] [DEBUG] [channel_analyzer.c:496]   Ch 112 (5560 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:35:03.567] [DEBUG] [channel_analyzer.c:496]   Ch 116 (5580 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:35:03.567] [DEBUG] [channel_analyzer.c:496]   Ch 132 (5660 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:35:03.567] [DEBUG] [channel_analyzer.c:496]   Ch 136 (5680 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:35:03.567] [DEBUG] [channel_analyzer.c:496]   Ch 140 (5700 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:35:03.567] [DEBUG] [channel_analyzer.c:496]   Ch 144 (5720 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:35:03.567] [DEBUG] [channel_analyzer.c:496]   Ch 149 (5745 MHz) [5G]: APs=3, avg=-83dBm, score=17.9
+[2026-11-20 19:35:03.567] [DEBUG] [channel_analyzer.c:496]   Ch 153 (5765 MHz) [5G]: APs=1, avg=-66dBm, score=30.4
+[2026-11-20 19:35:03.567] [DEBUG] [channel_analyzer.c:496]   Ch 157 (5785 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:35:03.567] [DEBUG] [channel_analyzer.c:496]   Ch 161 (5805 MHz) [5G]: APs=2, avg=-65dBm, score=22.1
+[2026-11-20 19:35:03.567] [DEBUG] [channel_analyzer.c:496]   Ch 165 (5825 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:35:08.514] [DEBUG] [wifi_scanner.c:872] Wake lateness: 7 us
+[2026-11-20 19:35:08.514] [DEBUG] [wifi_scanner.c:383] Sending wpa_supplicant command: SCAN
+[2026-11-20 19:35:08.514] [DEBUG] [wifi_scanner.c:783] SCAN accepted
+[2026-11-20 19:35:13.565] [DEBUG] [wifi_scanner.c:574] Monitor event: <3>CTRL-EVENT-SCAN-RESULTS 
+[2026-11-20 19:35:13.565] [DEBUG] [wifi_scanner.c:577] Scan complete event received
+[2026-11-20 19:35:13.565] [DEBUG] [wifi_scanner.c:383] Sending wpa_supplicant command: SCAN_RESULTS
+[2026-11-20 19:35:13.566] [INFO] [wifi_scanner.c:825] Scan complete: 13 APs found
+[2026-11-20 19:35:13.566] [INFO] [channel_analyzer.c:489] Analysis complete: Best 2.4GHz=ch6 (score=87.0), Best 5GHz=ch36 (score=85.0)
+[2026-11-20 19:35:13.566] [DEBUG] [channel_analyzer.c:496]   Ch   1 (2412 MHz) [2.4G]: APs=1, avg=-72dBm, score=38.4
+[2026-11-20 19:35:13.566] [DEBUG] [channel_analyzer.c:496]   Ch   2 (2417 MHz) [2.4G]: APs=0, avg=0dBm, score=68.0
+[2026-11-20 19:35:13.566] [DEBUG] [channel_analyzer.c:496]   Ch   3 (2422 MHz) [2.4G]: APs=0, avg=0dBm, score=68.0
+[2026-11-20 19:35:13.566] [DEBUG] [channel_analyzer.c:496]   Ch   4 (2427 MHz) [2.4G]: APs=0, avg=0dBm, score=68.0
+[2026-11-20 19:35:13.566] [DEBUG] [channel_analyzer.c:496]   Ch   5 (2432 MHz) [2.4G]: APs=1, avg=-47dBm, score=23.6
+[2026-11-20 19:35:13.566] [DEBUG] [channel_analyzer.c:496]   Ch   6 (2437 MHz) [2.4G]: APs=0, avg=0dBm, score=87.0
+[2026-11-20 19:35:13.566] [DEBUG] [channel_analyzer.c:496]   Ch   7 (2442 MHz) [2.4G]: APs=0, avg=0dBm, score=68.0
+[2026-11-20 19:35:13.566] [DEBUG] [channel_analyzer.c:496]   Ch   8 (2447 MHz) [2.4G]: APs=0, avg=0dBm, score=64.0
+[2026-11-20 19:35:13.566] [DEBUG] [channel_analyzer.c:496]   Ch   9 (2452 MHz) [2.4G]: APs=0, avg=0dBm, score=60.0
+[2026-11-20 19:35:13.566] [DEBUG] [channel_analyzer.c:496]   Ch  10 (2457 MHz) [2.4G]: APs=0, avg=0dBm, score=56.0
+[2026-11-20 19:35:13.566] [DEBUG] [channel_analyzer.c:496]   Ch  11 (2462 MHz) [2.4G]: APs=3, avg=-54dBm, score=28.0
+[2026-11-20 19:35:13.566] [DEBUG] [channel_analyzer.c:496]   Ch  36 (5180 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:35:13.566] [DEBUG] [channel_analyzer.c:496]   Ch  40 (5200 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:35:13.566] [DEBUG] [channel_analyzer.c:496]   Ch  44 (5220 MHz) [5G]: APs=1, avg=-81dBm, score=30.4
+[2026-11-20 19:35:13.566] [DEBUG] [channel_analyzer.c:496]   Ch  48 (5240 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:35:13.566] [DEBUG] [channel_analyzer.c:496]   Ch  52 (5260 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:35:13.566] [DEBUG] [channel_analyzer.c:496]   Ch  56 (5280 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:35:13.566] [DEBUG] [channel_analyzer.c:496]   Ch  60 (5300 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:35:13.566] [DEBUG] [channel_analyzer.c:496]   Ch  64 (5320 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:35:13.566] [DEBUG] [channel_analyzer.c:496]   Ch 100 (5500 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:35:13.566] [DEBUG] [channel_analyzer.c:496]   Ch 104 (5520 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:35:13.566] [DEBUG] [channel_analyzer.c:496]   Ch 108 (5540 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:35:13.566] [DEBUG] [channel_analyzer.c:496]   Ch 112 (5560 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:35:13.566] [DEBUG] [channel_analyzer.c:496]   Ch 116 (5580 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:35:13.566] [DEBUG] [channel_analyzer.c:496]   Ch 132 (5660 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:35:13.566] [DEBUG] [channel_analyzer.c:496]   Ch 136 (5680 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:35:13.566] [DEBUG] [channel_analyzer.c:496]   Ch 140 (5700 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:35:13.566] [DEBUG] [channel_analyzer.c:496]   Ch 144 (5720 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:35:13.566] [DEBUG] [channel_analyzer.c:496]   Ch 149 (5745 MHz) [5G]: APs=4, avg=-83dBm, score=15.4
+[2026-11-20 19:35:13.566] [DEBUG] [channel_analyzer.c:496]   Ch 153 (5765 MHz) [5G]: APs=1, avg=-66dBm, score=30.4
+[2026-11-20 19:35:13.566] [DEBUG] [channel_analyzer.c:496]   Ch 157 (5785 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:35:13.566] [DEBUG] [channel_analyzer.c:496]   Ch 161 (5805 MHz) [5G]: APs=2, avg=-65dBm, score=22.1
+[2026-11-20 19:35:13.566] [DEBUG] [channel_analyzer.c:496]   Ch 165 (5825 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:35:18.514] [DEBUG] [wifi_scanner.c:872] Wake lateness: 7 us
+[2026-11-20 19:35:18.514] [DEBUG] [wifi_scanner.c:383] Sending wpa_supplicant command: SCAN
+[2026-11-20 19:35:18.514] [DEBUG] [wifi_scanner.c:783] SCAN accepted
+[2026-11-20 19:35:23.557] [DEBUG] [wifi_scanner.c:574] Monitor event: <3>CTRL-EVENT-SCAN-RESULTS 
+[2026-11-20 19:35:23.557] [DEBUG] [wifi_scanner.c:577] Scan complete event received
+[2026-11-20 19:35:23.557] [DEBUG] [wifi_scanner.c:383] Sending wpa_supplicant command: SCAN_RESULTS
+[2026-11-20 19:35:23.558] [INFO] [wifi_scanner.c:825] Scan complete: 11 APs found
+[2026-11-20 19:35:23.558] [INFO] [channel_analyzer.c:489] Analysis complete: Best 2.4GHz=ch6 (score=87.0), Best 5GHz=ch36 (score=85.0)
+[2026-11-20 19:35:23.558] [DEBUG] [channel_analyzer.c:496]   Ch   1 (2412 MHz) [2.4G]: APs=1, avg=-71dBm, score=38.4
+[2026-11-20 19:35:23.558] [DEBUG] [channel_analyzer.c:496]   Ch   2 (2417 MHz) [2.4G]: APs=0, avg=0dBm, score=68.0
+[2026-11-20 19:35:23.558] [DEBUG] [channel_analyzer.c:496]   Ch   3 (2422 MHz) [2.4G]: APs=0, avg=0dBm, score=68.0
+[2026-11-20 19:35:23.558] [DEBUG] [channel_analyzer.c:496]   Ch   4 (2427 MHz) [2.4G]: APs=0, avg=0dBm, score=68.0
+[2026-11-20 19:35:23.558] [DEBUG] [channel_analyzer.c:496]   Ch   5 (2432 MHz) [2.4G]: APs=1, avg=-51dBm, score=23.6
+[2026-11-20 19:35:23.558] [DEBUG] [channel_analyzer.c:496]   Ch   6 (2437 MHz) [2.4G]: APs=0, avg=0dBm, score=87.0
+[2026-11-20 19:35:23.558] [DEBUG] [channel_analyzer.c:496]   Ch   7 (2442 MHz) [2.4G]: APs=0, avg=0dBm, score=70.0
+[2026-11-20 19:35:23.558] [DEBUG] [channel_analyzer.c:496]   Ch   8 (2447 MHz) [2.4G]: APs=0, avg=0dBm, score=68.0
+[2026-11-20 19:35:23.558] [DEBUG] [channel_analyzer.c:496]   Ch   9 (2452 MHz) [2.4G]: APs=0, avg=0dBm, score=66.0
+[2026-11-20 19:35:23.558] [DEBUG] [channel_analyzer.c:496]   Ch  10 (2457 MHz) [2.4G]: APs=0, avg=0dBm, score=64.0
+[2026-11-20 19:35:23.558] [DEBUG] [channel_analyzer.c:496]   Ch  11 (2462 MHz) [2.4G]: APs=2, avg=-50dBm, score=32.3
+[2026-11-20 19:35:23.558] [DEBUG] [channel_analyzer.c:496]   Ch  36 (5180 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:35:23.558] [DEBUG] [channel_analyzer.c:496]   Ch  40 (5200 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:35:23.558] [DEBUG] [channel_analyzer.c:496]   Ch  44 (5220 MHz) [5G]: APs=1, avg=-80dBm, score=30.4
+[2026-11-20 19:35:23.558] [DEBUG] [channel_analyzer.c:496]   Ch  48 (5240 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:35:23.558] [DEBUG] [channel_analyzer.c:496]   Ch  52 (5260 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:35:23.558] [DEBUG] [channel_analyzer.c:496]   Ch  56 (5280 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:35:23.558] [DEBUG] [channel_analyzer.c:496]   Ch  60 (5300 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:35:23.558] [DEBUG] [channel_analyzer.c:496]   Ch  64 (5320 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:35:23.558] [DEBUG] [channel_analyzer.c:496]   Ch 100 (5500 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:35:23.558] [DEBUG] [channel_analyzer.c:496]   Ch 104 (5520 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:35:23.558] [DEBUG] [channel_analyzer.c:496]   Ch 108 (5540 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:35:23.558] [DEBUG] [channel_analyzer.c:496]   Ch 112 (5560 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:35:23.558] [DEBUG] [channel_analyzer.c:496]   Ch 116 (5580 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:35:23.558] [DEBUG] [channel_analyzer.c:496]   Ch 132 (5660 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:35:23.558] [DEBUG] [channel_analyzer.c:496]   Ch 136 (5680 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:35:23.558] [DEBUG] [channel_analyzer.c:496]   Ch 140 (5700 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:35:23.558] [DEBUG] [channel_analyzer.c:496]   Ch 144 (5720 MHz) [5G]: APs=0, avg=0dBm, score=80.0
+[2026-11-20 19:35:23.558] [DEBUG] [channel_analyzer.c:496]   Ch 149 (5745 MHz) [5G]: APs=3, avg=-84dBm, score=17.9
+[2026-11-20 19:35:23.558] [DEBUG] [channel_analyzer.c:496]   Ch 153 (5765 MHz) [5G]: APs=0, avg=0dBm, score=85.0
+[2026-11-20 19:35:23.558] [DEBUG] [channel_analyzer.c:496]   Ch 157 (5785 MHz) [5G]: APs=1, avg=-90dBm, score=30.3
+[2026-11-20 19:35:23.558] [DEBUG] [channel_analyzer.c:496]   Ch 161 (5805 MHz) [5G]: APs=2, avg=-66dBm, score=22.1
+[2026-11-20 19:35:23.558] [DEBUG] [channel_analyzer.c:496]   Ch 165 (5825 MHz) [5G]: APs=0, avg=0dBm, score=85.0

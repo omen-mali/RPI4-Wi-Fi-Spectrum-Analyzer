@@ -55,3 +55,10 @@ wsa_add_test(test_schedule)
 wsa_add_test(test_scanner ${CMAKE_SOURCE_DIR}/src/wifi_scanner.c)
 target_compile_definitions(test_scanner PRIVATE SCAN_COMPLETE_TIMEOUT_MS=300)
 
+wsa_add_test(test_logger)
+
+# The level filter is compile-time (LOG_MIN_LEVEL), so this test builds its
+# own logger.c with LOG_WARN.
+wsa_add_test(test_logger_level ${CMAKE_SOURCE_DIR}/src/logger.c)
+target_compile_definitions(test_logger_level PRIVATE LOG_MIN_LEVEL=LOG_WARN)
+

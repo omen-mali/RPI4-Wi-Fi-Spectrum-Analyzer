@@ -16,7 +16,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#define LOG_CAPTURE_MAX (256 * 1024)
+#define LOG_CAPTURE_MAX (4 * 1024 * 1024)   /* the overflow test logs ~2 MB */
 
 static FILE *log_capture_file_;
 static int   log_capture_saved_fd_ = -1;

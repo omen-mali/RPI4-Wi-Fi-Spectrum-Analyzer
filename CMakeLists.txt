@@ -52,6 +52,7 @@ add_compile_options(
 add_library(wsa_core STATIC
     src/wifi_scanner.c
     src/scan_parse.c
+    src/schedule.c
     src/channel_analyzer.c
     src/thread_manager.c
     src/logger.c

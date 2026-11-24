@@ -65,6 +65,7 @@
 #include "wifi_scanner.h"
 #include "logger.h"
 #include "scan_parse.h"
+#include "schedule.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -149,27 +150,8 @@ struct wifi_scanner {
 };
 
 /* =========================================================================
- * Internal Helpers: CLOCK_MONOTONIC timespec arithmetic
+ * Internal Helper: Absolute-Deadline Sleep
  * ========================================================================= */
-
-#define NSEC_PER_SEC 1000000000L
-
-static void ts_add_ms(struct timespec *ts, uint32_t ms)
-{
-    ts->tv_sec  += (time_t)(ms / 1000u);
-    ts->tv_nsec += (long)(ms % 1000u) * 1000000L;
-    if (ts->tv_nsec >= NSEC_PER_SEC) {
-        ts->tv_sec  += 1;
-        ts->tv_nsec -= NSEC_PER_SEC;
-    }
-}
-
-/** @return a - b in nanoseconds. */
-static int64_t ts_diff_ns(const struct timespec *a, const struct timespec *b)
-{
-    return (int64_t)(a->tv_sec - b->tv_sec) * NSEC_PER_SEC +
-           (int64_t)(a->tv_nsec - b->tv_nsec);
-}
 
 /**
  * @brief Sleep until an absolute CLOCK_MONOTONIC deadline.
@@ -682,14 +664,10 @@ void *wifi_scanner_run(void *arg)
              * schedule. If the cycle overran, skip whole slots to stay
              * phase-aligned instead of firing back-to-back to catch up.
              */
-            ts_add_ms(&next, scanner->period_ms);
             scanner->cycles++;
 
             clock_gettime(CLOCK_MONOTONIC, &now);
-            while (ts_diff_ns(&now, &next) >= 0) {
-                ts_add_ms(&next, scanner->period_ms);
-                skipped++;
-            }
+            skipped = schedule_advance(&next, &now, scanner->period_ms);
             if (skipped > 0) {
                 scanner->overruns += skipped;
                 LOG_WRN("Scan cycle overran its %u ms period: skipped %u slot(s) "

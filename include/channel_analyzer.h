@@ -47,6 +47,21 @@ channel_analyzer_t *channel_analyzer_init(const regdomain_t *regdomain,
                                           pthread_cond_t *buffer_cond);
 
 /**
+ * @brief Analyze one scan: per-channel metrics, scores and best channels.
+ *
+ * Zeroes *out, then fills it for the channels the regulatory domain
+ * permits. Pure computation: it doesn't lock, block or log, so it's safe
+ * from any thread. channel_analyzer_run() calls it for each new scan.
+ *
+ * @param regdomain  Regulatory domain filter (NULL means the world domain).
+ * @param scan       The scan results to analyze.
+ * @param out        Output: the analysis result.
+ */
+void channel_analyzer_analyze(const regdomain_t *regdomain,
+                              const scan_buffer_t *scan,
+                              analysis_result_t *out);
+
+/**
  * @brief Analyzer thread entry point.
  *
  * Waits on the condition variable for new scan data, then performs

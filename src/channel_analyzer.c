@@ -302,6 +302,9 @@ static float compute_overlap_penalty(uint8_t target_channel,
 
     for (size_t i = 0; i < scan_data->count; i++) {
         if (scan_data->entries[i].band != BAND_2_4_GHZ) continue;
+        /* Channel 0 = a frequency the parser doesn't know (e.g. 4.9 GHz,
+           which it bands as 2.4). It has no position to overlap from. */
+        if (scan_data->entries[i].channel == 0) continue;
 
         int ch_diff = abs((int)target_channel - (int)scan_data->entries[i].channel);
 
@@ -397,6 +400,16 @@ static void find_best_channels(analysis_result_t *result)
  * Public API Implementation
  * ========================================================================= */
 
+void channel_analyzer_analyze(const regdomain_t *regdomain,
+                              const scan_buffer_t *scan,
+                              analysis_result_t *out)
+{
+    memset(out, 0, sizeof(*out));
+    compute_channel_metrics(regdomain, scan, out->channels, &out->channel_count);
+    score_channels(out->channels, out->channel_count, scan);
+    find_best_channels(out);
+}
+
 channel_analyzer_t *channel_analyzer_init(const regdomain_t *regdomain,
                                           scan_buffer_t *shared_buffer,
                                           pthread_mutex_t *buffer_mutex,
@@ -471,15 +484,9 @@ void *channel_analyzer_run(void *arg)
         last_seen_ts = local_copy.timestamp_ns;
         pthread_mutex_unlock(analyzer->buffer_mutex);
 
-        // Compute metrics
         analysis_result_t result;
-        memset(&result, 0, sizeof(result));
-        compute_channel_metrics(analyzer->regdomain, &local_copy,
-                                result.channels, &result.channel_count);
-        // Score channels
-        score_channels(result.channels, result.channel_count, &local_copy);
-        find_best_channels(&result);
-        
+        channel_analyzer_analyze(analyzer->regdomain, &local_copy, &result);
+
         // Store results and log
         pthread_mutex_lock(&analyzer->result_mutex);
         memcpy(&analyzer->latest_result, &result, sizeof(result));

@@ -34,3 +34,4 @@ function(wsa_add_test name)
 endfunction()
 
 wsa_add_test(test_regdomain)
+wsa_add_test(test_channel_analyzer)

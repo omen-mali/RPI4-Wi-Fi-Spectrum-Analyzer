@@ -2,8 +2,10 @@
  * @file schedule.c
  * @brief timespec arithmetic and the fixed-rate slot advance (schedule.h).
  *
- * ts_add_ms() and ts_diff_ns() moved here unchanged from wifi_scanner.c,
- * schedule_advance() is the slot loop from wifi_scanner_run().
+ * ts_add_ms() and ts_diff_ns() do CLOCK_MONOTONIC arithmetic with tv_nsec
+ * kept normalized. schedule_advance() moves the scanner's next deadline along
+ * a fixed grid of period-long slots and counts the slots an overrun skipped.
+ * No function here reads the clock or sleeps.
  */
 
 #include "schedule.h"

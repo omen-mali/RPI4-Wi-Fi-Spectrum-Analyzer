@@ -42,22 +42,12 @@
  *     - Receives one pending event message.
  *
  * =========================================================================
- * SCAN_RESULTS FORMAT (from wpa_supplicant)
+ * SCAN_RESULTS
  * =========================================================================
  *
- *   The SCAN_RESULTS command returns a tab-separated table:
- *
- *     bssid / frequency / signal level / flags / ssid
- *     00:11:22:33:44:55\t2412\t-45\t[WPA2-PSK-CCMP][ESS]\tMyNetwork
- *     AA:BB:CC:DD:EE:FF\t5180\t-67\t[WPA2-PSK-CCMP][ESS]\tOtherNet
- *
- *   First line is a header that should be skipped.
- *   Fields:
- *     - bssid:       MAC address of the AP (string)
- *     - frequency:   Center frequency in MHz (integer)
- *     - signal level: RSSI in dBm (negative integer)
- *     - flags:       Security/capability flags (string, can be ignored for now)
- *     - ssid:        Network name (string, may be empty)
+ *   The SCAN_RESULTS reply (a header line plus one tab-separated row per
+ *   AP) is parsed by scan_parse_results(). See scan_parse.c for the 
+ *   SCAN_RESULTS format.
  *
  * =========================================================================
  */

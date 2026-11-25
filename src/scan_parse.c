@@ -2,7 +2,18 @@
  * @file scan_parse.c
  * @brief SCAN_RESULTS parsing and frequency-to-channel mapping.
  *
- * See wifi_scanner.c for the SCAN_RESULTS format.
+ * wpa_supplicant's SCAN_RESULTS reply is a header line followed by one
+ * tab-separated row per AP:
+ *
+ *     bssid / frequency / signal level / flags / ssid
+ *     00:11:22:33:44:55\t2412\t-45\t[WPA2-PSK-CCMP][ESS]\tMyNetwork
+ *     AA:BB:CC:DD:EE:FF\t5180\t-67\t[WPA2-PSK-CCMP][ESS]\tOtherNet
+ *
+ *   - bssid:        MAC address of the AP
+ *   - frequency:    center frequency in MHz
+ *   - signal level: RSSI in dBm (negative)
+ *   - flags:        security and capability flags (not used here)
+ *   - ssid:         network name, empty for a hidden network
  */
 
 #include "scan_parse.h"

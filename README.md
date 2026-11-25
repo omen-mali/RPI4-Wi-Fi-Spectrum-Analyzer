@@ -168,33 +168,134 @@ The application logs to stderr. Press `Ctrl+C` to stop.
 | `Scan cycle overran its N ms period` | A scan took longer than `-p`. A full 2.4 + 5 GHz scan takes about 5 s (longer without `country=`), so keep the period well above that. |
 | `wpa_supplicant has no country set` | Add `country=CA` to `/boot/wpa_supplicant.conf` and reboot. |
 
+## Testing and CI
+
+### Host unit tests
+
+The portable core (every source except `main.c`) also builds for Linux, where CTest runs it
+against a link-time fake of libwpactrl (`tests/fakes/`) that replays recorded `SCAN_RESULTS` replies
+and scan events from `tests/fixtures/`. Nothing needs the Pi or the QNX SDP.
+
+```bash
+scripts/host-test.sh                 # gcc, no sanitizer
+scripts/host-test.sh clang asan      # [gcc|clang] [asan|tsan|none]
+python3 -m unittest discover -s tests/scripts   # the Python scripts' tests
+```
+
+On Linux the build runs natively and needs cmake, ninja and the compiler. On macOS the script re-runs
+itself in the linux/amd64 build image (`docker/Containerfile`, without the SDP), because the host
+build needs `clock_nanosleep`, which macOS lacks. `tsan` only runs on native x86-64 Linux:
+ThreadSanitizer aborts under Rosetta, so it runs in the hosted CI. Each compiler and sanitizer pair
+builds in `build/host-<cc>-<san>/`.
+
+### Hosted CI (GitHub Actions)
+
+`.github/workflows/host.yml` runs on every push and on pull requests into `main` and `dev`:
+
+| Job | What it checks |
+| --- | --- |
+| `build-test` | the host tests with gcc and with clang |
+| `sanitizers` | clang with ASan+UBSan, and with TSan |
+| `static` | cppcheck on `src/`, and clang-tidy (`.clang-tidy`) on the host-build sources |
+| `scripts` | shellcheck on `scripts/*.sh`, and the Python tests |
+| `version` | on `v*` tags only: the tag must equal `project(VERSION)` in `CMakeLists.txt` |
+| `host` | passes only if all of the above did (this is the required check) |
+
+`codeql.yml` runs CodeQL on pull requests into `main` and weekly, and Dependabot keeps the
+SHA-pinned actions current.
+
+### QNX build and Pi smoke run (`ci-local.sh`)
+
+Hosted runners can't build for QNX (the SDP is licensed and x86-64 only) or reach the Pi, so
+`scripts/ci-local.sh` does both locally and posts the results as commit statuses via `gh`:
+
+```bash
+scripts/ci-local.sh                      # QNX build, then a 60 s smoke run on the Pi
+scripts/ci-local.sh --no-pi              # QNX build only
+scripts/ci-local.sh --pi qnxuser@<PI_IP> --seconds 120
+```
+
+Must run from a clean checkout of a commit that's on GitHub (it refuses otherwise). Setup-specific settings come from `local.env`
+(see `local.env.example`), and the pass limits are in `scripts/ci-thresholds.env`.
+
+| Status | Success means | Error means |
+| --- | --- | --- |
+| `host` | every hosted job passed | at least one hosted job failed |
+| `qnx/build` | `scripts/qnx-build.sh clean` built the binary (size and warning count in the description) | `ci-local.sh` was interrupted |
+| `pi/smoke` | the app ran on the Pi with no ERROR lines, a clean shutdown, enough scan cycles, wake latency p99 under the limit, and at least one AP (`scripts/smoke-check.py`) | the Pi was unreachable or the run timed out, which isn't a failed build |
+
+The full report (build output, the Pi's logs, the verdict) goes to `build/ci/<sha>/`. Nothing under
+`build/` is committed.
+
+Note: `pi/smoke` is reported but not required, so a merge doesn't wait on the Pi being plugged in.
+
+### Releases
+
+Tag `main` with `vX.Y.Z`, equal to `project(VERSION)` in `CMakeLists.txt`, add a `## [X.Y.Z]` section
+to `CHANGELOG.md`, and push both. Then `scripts/ci-local.sh --release` builds the binary for that tag
+and attaches it to the GitHub Release as `wifi_spectrum_analyzer-vX.Y.Z-qnx800-aarch64le`, with the
+changelog section as its notes. It won't publish a binary whose `pi/smoke` failed.
+
+### Adding a test fixture
+
+Fixtures are committed, so they must not contain real network names, BSSIDs, IP or MAC addresses.
+Captures must be anonymized before they are added:
+
+```bash
+# on the Pi:  wpa_cli -i bcm0 scan_results > scan.txt
+scripts/anonymize.py scan scan.txt tests/fixtures/scan/<name>.txt
+scripts/anonymize.py log  run.log  tests/fixtures/timing/<name>.txt
+```
+
+BSSIDs and MACs become `02:00:00:xx:xx:xx` and SSIDs become `net-NN`, numbered in first-seen order,
+and the same input always gives the same output. Check the result by eye before committing it.
+
 ## Project Structure
 
 ```
 .
 ├── CMakeLists.txt                    Top-level build configuration
 ├── cmake/
-│   └── qnx_aarch64.toolchain.cmake  Cross-compilation toolchain file
+│   └── qnx_aarch64.toolchain.cmake   Cross-compilation toolchain file
+│
 ├── docker/
 │   ├── Containerfile                 linux/amd64 QNX SDP build image (container/Docker)
 │   └── qnx-entrypoint.sh             Sources qnxsdp-env.sh inside the container
+│
+├── .github/                          Hosted CI (host.yml, codeql.yml) and Dependabot
+├── local.env.example                 Template for setup-specific settings (local.env)
+├── CHANGELOG.md                      Changes per release
 ├── scripts/
 │   ├── qnx-build.sh                  Cross-compile in the container
-│   └── deploy.sh                     Copy binary (+ libwpactrl) and launcher to the Pi
+│   ├── deploy.sh                     Copy binary (+ libwpactrl) and launcher to the Pi
+│   ├── host-test.sh                  Build and run the host unit tests
+│   ├── ci-local.sh                   QNX build + Pi smoke run, posted as commit statuses
+│   ├── measure-timing.sh             Timing capture on the Pi (runs measure-remote.sh there)
+│   ├── analyze-timing.py             Timing statistics from analyzer logs
+│   ├── smoke-check.py                Pass/fail verdict for a smoke-run log
+│   └── anonymize.py                  Anonymize captures before committing them as fixtures
+│
 ├── include/
 │   ├── config.h                      Constants, data types, tunables
 │   ├── wifi_scanner.h                Scanner module API
 │   ├── channel_analyzer.h            Analyzer module API
 │   ├── regdomain.h                   Country -> legal channel tables
+│   ├── scan_parse.h                  SCAN_RESULTS parsing
+│   ├── schedule.h                    Fixed-rate schedule maths
 │   ├── thread_manager.h              Thread lifecycle API
 │   └── logger.h                      Logging API
+│
 ├── src/
 │   ├── main.c                        Entry point, CLI (-i/-c), orchestration
 │   ├── wifi_scanner.c                wpa_ctrl-based Wi-Fi scanning
 │   ├── channel_analyzer.c            Channel scoring and ranking
 │   ├── regdomain.c                   Built-in CA / US / world tables
+│   ├── scan_parse.c                  SCAN_RESULTS rows -> scan entries
+│   ├── schedule.c                    Next wake time and skipped slots
 │   ├── thread_manager.c              POSIX RT thread management
 │   └── logger.c                      Thread-safe logging
+│
+├── tests/                            Host unit tests, the fake libwpactrl, fixtures
 └── README.md                         This file
 ```
 
@@ -205,13 +306,13 @@ These practices are documented in code comments throughout the project:
 
 | Practice                   | Where                              | Why                                        |
 | -------------------------- | ---------------------------------- | ------------------------------------------ |
-| No malloc in RT paths      | wifi_scanner.c, channel_analyzer.c | Deterministic timing; malloc can block     |
+| No malloc in RT paths      | wifi_scanner.c, channel_analyzer.c | Deterministic timing (malloc can block)     |
 | PTHREAD_PRIO_INHERIT       | logger.c, main.c                   | Prevents priority inversion                |
-| PTHREAD_EXPLICIT_SCHED     | thread_manager.c                   | Ensures threads get the attributes you set |
+| PTHREAD_EXPLICIT_SCHED     | thread_manager.c                   | Ensures threads get the attributes they are set with |
 | clock_nanosleep(TIMER_ABSTIME) | wifi_scanner.c                 | Fixed-rate, drift-free scan schedule with overrun detection |
 | poll() on wpa_ctrl fd      | wifi_scanner.c                     | Event-driven scan completion, no polling quantization |
 | sigwait() pattern          | main.c                             | Safe signal handling in multithreaded apps |
-| Reentrant in-place parsing | wifi_scanner.c (`next_field`)      | Thread-safe, no allocation, keeps empty fields (hidden SSIDs) |
+| Reentrant in-place parsing | scan_parse.c (`next_field`)        | Thread-safe, no allocation, keeps empty fields (hidden SSIDs) |
 | Check all return values    | All files                          | Robust error handling for RTOS reliability |
 
 

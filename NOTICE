@@ -1,0 +1,8 @@
+RPI4 Wi-Fi Spectrum Analyzer
+Copyright 2026 Momen Ali
+
+Licensed under the Apache License, Version 2.0 (see LICENSE).
+
+The application is built with the QNX Software Development Platform and runs
+on QNX Neutrino, both from BlackBerry Limited. That software isn't part of
+this repository and isn't covered by its license; see "License" in README.md.

@@ -234,7 +234,12 @@ Note: `pi/smoke` is reported but not required, so a merge doesn't wait on the Pi
 Tag `main` with `vX.Y.Z`, equal to `project(VERSION)` in `CMakeLists.txt`, add a `## [X.Y.Z]` section
 to `CHANGELOG.md`, and push both. Then `scripts/ci-local.sh --release` builds the binary for that tag
 and attaches it to the GitHub Release as `wifi_spectrum_analyzer-vX.Y.Z-qnx800-aarch64le`, with the
-changelog section as its notes. It won't publish a binary whose `pi/smoke` failed.
+changelog section as its notes, and attaches the QNX demonstration EULA beside it (see
+[License](#license)). It won't publish a binary whose `pi/smoke` failed.
+
+Add `--dry-run` to try any of this without touching GitHub: everything is built and run, but no
+status is posted and nothing is published. The script prints what it would post and leaves the
+release assets and notes in `build/ci/<sha>/`, and the commit and tag needn't be pushed yet.
 
 ### Adding a test fixture
 
@@ -324,3 +329,31 @@ These practices are documented in code comments throughout the project:
 - **REST/IPC interface**: Expose results via a QNX resource manager or a lightweight HTTP server for remote monitoring.
 - **More regulatory domains**: Add tables to `src/regdomain.c` (only CA, US and world are built in), or read them from wpa_supplicant at runtime.
 
+## License
+
+This repository's own code, scripts and docs are licensed under the [Apache License 2.0](LICENSE).
+See [NOTICE](NOTICE) for the copyright line.
+
+The software it's built with and runs on is not in this repository and is not covered by that
+license:
+
+- **QNX Software Development Platform 8.0.** Building needs the SDP (compiler, headers and
+  libraries), which is BlackBerry's software under its own license: a commercial license, or the
+  free non-commercial license from the QNX Everywhere program. It is not redistributed here, and must be acquired from QNX.
+- **Libraries the binary links.** QNX's C library and libsocket, and libwpactrl-2.11 from the SDP's
+  wpa_supplicant package. libwpactrl comes from the open-source hostap project (BSD license). The
+  build shipped in the SDP is delivered under the SDP's terms.
+- **The target.** Running the app needs a QNX Neutrino 8.0 image for the Raspberry Pi 4 (the QNX
+  Quick Start image), which has its own license.
+
+Apache-2.0 lets anyone use, change and redistribute this code, including commercial use. Building or
+running it still needs a QNX license that fits the use: the non-commercial license doesn't cover
+commercial development or products.
+
+**Prebuilt binaries.** Binaries attached to GitHub Releases are built with a non-commercial QNX
+license. That license allows sharing them only as demonstrations for non-commercial evaluation,
+with the recipient accepting its demonstration EULA, so each release carries that EULA as
+`QNX-DEMO-EULA.txt`. The releases are not meant for redistribution or commercially use, build your own under your
+own QNX license instead for those purposes. To publish releases, set `WSA_QNX_DEMO_EULA` in `local.env` to a text copy
+of the demonstration EULA (Exhibit B of the QNX Development License, Non-Commercial); see
+`local.env.example`.

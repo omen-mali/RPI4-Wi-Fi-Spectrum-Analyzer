@@ -3,12 +3,21 @@
 # smoke test on the Pi, and post the results as commit statuses on HEAD.
 #
 # Usage:
-#   scripts/ci-local.sh [--no-pi] [--pi user@host] [--seconds N] [--release]
+#   scripts/ci-local.sh [--no-pi] [--pi user@host] [--seconds N] [--release] [--dry-run]
 #     --no-pi       build only, and post nothing for pi/smoke
 #     --pi HOST     the Pi as user@host (default: WSA_PI from local.env)
 #     --seconds N   length of the smoke run, at least 10 (default: 60)
 #     --release     when HEAD is a pushed vX.Y.Z tag, attach the QNX binary to
-#                   that GitHub Release, with its CHANGELOG.md section as notes
+#                   that GitHub Release, with its CHANGELOG.md section as notes.
+#                   The QNX non-commercial license allows handing out binaries
+#                   only as demonstrations whose users accept the license's
+#                   demonstration EULA (Exhibit B), so the EULA text is
+#                   attached too: set WSA_QNX_DEMO_EULA in local.env to a file
+#                   holding it (see README, "License").
+#     --dry-run     build and run everything, but post no statuses and publish
+#                   nothing: print what would be posted, and leave the release
+#                   assets and notes in build/ci/<sha>/. The commit and tag
+#                   don't have to be on GitHub, and gh needn't be logged in.
 #
 # Statuses (context: meaning):
 #   qnx/build  scripts/qnx-build.sh clean succeeded, the description gives the
@@ -36,6 +45,7 @@ PI_ARG=""
 RUN_SECS=60
 NO_PI=0
 RELEASE=0
+DRY_RUN=0
 BIN=build/qnx/wifi_spectrum_analyzer
 CM=(-o ControlMaster=auto -o "ControlPath=$HOME/.ssh/cm-%C" -o ControlPersist=30m)
 
@@ -48,6 +58,7 @@ while [ $# -gt 0 ]; do
         --pi)      [ $# -ge 2 ] || die "--pi needs user@host"; PI_ARG="$2"; shift ;;
         --seconds) [ $# -ge 2 ] || die "--seconds needs a number"; RUN_SECS="$2"; shift ;;
         --release) RELEASE=1 ;;
+        --dry-run) DRY_RUN=1 ;;
         -h|--help) usage; exit 0 ;;
         *)         die "unknown option '$1' (see --help)" ;;
     esac
@@ -59,14 +70,27 @@ case "$RUN_SECS" in ''|*[!0-9]*) die "--seconds must be a whole number" ;; esac
 
 # --- Refuse to run when the statuses couldn't describe HEAD --------------------
 # Untracked files are allowed: the build only uses files CMakeLists.txt names.
+# A dry run posts nothing, so what GitHub has only warrants a warning there.
+github_needs() {  # message
+    if [ "$DRY_RUN" = 1 ]; then
+        echo "warning (dry run): $1" >&2
+    else
+        die "$1"
+    fi
+}
 [ -z "$(git status --porcelain --untracked-files=no)" ] \
     || die "uncommitted changes: commit or stash first (statuses are posted on HEAD's SHA)"
-gh auth status >/dev/null 2>&1 || die "gh isn't logged in: run 'gh auth login'"
+gh auth status >/dev/null 2>&1 || github_needs "gh isn't logged in: run 'gh auth login'"
 SHA="$(git rev-parse HEAD)"
 [ -n "$(git branch -r --contains "$SHA" 2>/dev/null)" ] \
-    || die "push this commit first: GitHub has no commit to attach a status to"
+    || github_needs "push this commit first: GitHub has no commit to attach a status to"
 
-SLUG="$(gh repo view --json nameWithOwner -q .nameWithOwner)"
+if [ "$DRY_RUN" = 1 ]; then
+    SLUG="$(gh repo view --json nameWithOwner -q .nameWithOwner 2>/dev/null || echo '<owner>/<repo>')"
+    echo ">> Dry run: nothing is posted or published"
+else
+    SLUG="$(gh repo view --json nameWithOwner -q .nameWithOwner)"
+fi
 OUT="$REPO/build/ci/$SHA"
 mkdir -p "$OUT"
 : >"$OUT/statuses.txt"
@@ -78,12 +102,28 @@ if [ "$RELEASE" = 1 ]; then
     [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || die "--release: tag $TAG isn't vX.Y.Z"
     REMOTE_SHA="$(git ls-remote origin "refs/tags/$TAG^{}" | cut -f1)"
     [ -n "$REMOTE_SHA" ] || REMOTE_SHA="$(git ls-remote origin "refs/tags/$TAG" | cut -f1)"
-    [ "$REMOTE_SHA" = "$SHA" ] || die "--release: push tag $TAG first (GitHub doesn't have it on this commit)"
+    [ "$REMOTE_SHA" = "$SHA" ] || github_needs "--release: push tag $TAG first (GitHub doesn't have it on this commit)"
     NOTES="$OUT/release-notes.md"
     [ -f CHANGELOG.md ] || die "--release: CHANGELOG.md not found"
-    awk -v h="## [${TAG#v}]" 'index($0, h) == 1 {f = 1; next} f && /^## / {exit} f' \
+    # The section runs to the next "## " heading; link definitions ("[x]: url") are left out.
+    awk -v h="## [${TAG#v}]" 'index($0, h) == 1 {f = 1; next} f && /^## / {exit} f && /^\[[^]]*\]: / {next} f' \
         CHANGELOG.md >"$NOTES"
     grep -q '[^[:space:]]' "$NOTES" || die "--release: CHANGELOG.md has no '## [${TAG#v}]' section"
+    EULA="$(wsa_local_path "${WSA_QNX_DEMO_EULA:-}")"
+    [ -n "$EULA" ] || die "--release: set WSA_QNX_DEMO_EULA in local.env to the QNX demonstration EULA text (see README, \"License\")"
+    [ -s "$EULA" ] || die "--release: WSA_QNX_DEMO_EULA=$EULA is missing or empty"
+    ASSET_NAME="wifi_spectrum_analyzer-$TAG-qnx800-aarch64le"
+    cat >>"$NOTES" <<NOTICE
+
+---
+
+**About the binary.** \`$ASSET_NAME\` was built with the QNX SDP 8.0 under a
+non-commercial QNX license. It's a demonstration build for non-commercial evaluation
+only, and using it means accepting the QNX demonstration EULA attached to this release
+(\`QNX-DEMO-EULA.txt\`). It needs a QNX Neutrino 8.0 target, which is licensed
+separately. The source code is under the Apache License 2.0, however, the QNX software
+it is built with and runs on isn't.
+NOTICE
 fi
 
 # --- Statuses ---------------------------------------------------------------
@@ -94,7 +134,9 @@ CHILD=""
 post() {  # context state description
     local desc="${3//$HOME/~}"
     desc="${desc:0:140}"
-    if gh api -X POST "repos/$SLUG/statuses/$SHA" -f state="$2" -f context="$1" \
+    if [ "$DRY_RUN" = 1 ]; then
+        echo ">> [dry run, not posted] $1: $2 ($desc)"
+    elif gh api -X POST "repos/$SLUG/statuses/$SHA" -f state="$2" -f context="$1" \
             -f description="$desc" >/dev/null; then
         echo ">> $1: $2 ($desc)"
     else
@@ -203,14 +245,22 @@ fi
 if [ "$RELEASE" = 1 ]; then
     # A binary that failed on the Pi isn't published. --no-pi skips the check.
     [ "$SMOKE" != failure ] || die "--release: pi/smoke failed, not publishing"
-    ASSET="$OUT/wifi_spectrum_analyzer-$TAG-qnx800-aarch64le"
+    ASSET="$OUT/$ASSET_NAME"
+    EULA_ASSET="$OUT/QNX-DEMO-EULA.txt"
     cp "$BIN" "$ASSET"
-    if gh release view "$TAG" >/dev/null 2>&1; then
-        gh release upload "$TAG" "$ASSET" --clobber
+    cp "$EULA" "$EULA_ASSET"
+    if [ "$DRY_RUN" = 1 ]; then
+        echo ">> [dry run, not published] would run one of:"
+        echo "     gh release create $TAG $ASSET_NAME QNX-DEMO-EULA.txt --verify-tag --title $TAG --notes-file release-notes.md"
+        echo "     gh release upload $TAG $ASSET_NAME QNX-DEMO-EULA.txt --clobber   (if the release exists)"
+        echo ">> Assets and notes: $OUT"
+    elif gh release view "$TAG" >/dev/null 2>&1; then
+        gh release upload "$TAG" "$ASSET" "$EULA_ASSET" --clobber
     else
-        gh release create "$TAG" "$ASSET" --verify-tag --title "$TAG" --notes-file "$NOTES"
+        gh release create "$TAG" "$ASSET" "$EULA_ASSET" --verify-tag --title "$TAG" \
+            --notes-file "$NOTES"
     fi
-    echo ">> Released $TAG: $(basename "$ASSET")"
+    [ "$DRY_RUN" = 1 ] || echo ">> Released $TAG: $ASSET_NAME and QNX-DEMO-EULA.txt"
 fi
 
 [ "$SMOKE" != failure ]

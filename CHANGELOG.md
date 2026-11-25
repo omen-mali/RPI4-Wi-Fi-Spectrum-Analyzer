@@ -8,6 +8,8 @@ things). Each release's tag `vX.Y.Z` equals `project(VERSION)` in `CMakeLists.tx
 ## [Unreleased]
 
 ### Added
+- The project is licensed under the Apache License 2.0 (`LICENSE`, `NOTICE`). The README's License
+  section covers the QNX software it's built with and the terms for prebuilt release binaries.
 - Host unit tests under CTest: the portable core (`wsa_core`, every source except `main.c`) builds
   for Linux and runs against a link-time fake of libwpactrl that replays recorded scan replies and
   events. `scripts/host-test.sh` runs them natively on Linux, or in the build container on macOS.
@@ -18,7 +20,8 @@ things). Each release's tag `vX.Y.Z` equals `project(VERSION)` in `CMakeLists.tx
   shellcheck, the Python tests and a tag/version check, summarized by one required `host` check;
   CodeQL and Dependabot.
 - `scripts/ci-local.sh`: builds the QNX binary and runs a smoke test on the Pi, posting `qnx/build`
-  and `pi/smoke` commit statuses; `--release` attaches the binary to a tagged GitHub Release.
+  and `pi/smoke` commit statuses; `--release` attaches the binary and the QNX demonstration EULA
+  to a tagged GitHub Release, and `--dry-run` does it all without posting or publishing.
 - `scripts/smoke-check.py` (smoke-run verdict), `scripts/anonymize.py` (anonymizes captures for
   fixtures) and `analyze-timing.py --json`.
 - `local.env` (git-ignored, template `local.env.example`) for setup-specific settings: the Pi, the
@@ -57,7 +60,7 @@ Brings the code in line with the QNX 8.0.5 Quick Start image for the RPi4 (io-so
   launcher to the Pi.
 
 ### Changed
-- The default interface is `bcm0`, io-sock's name for the radio (`wlan0` doesn't exist there), overriden with `-i`.
+- The default interface is `bcm0`, io-sock's name for the radio (`wlan0` doesn't exist there), overridden with `-i`.
 - Builds against the SDP's `<wpa_ctrl-2.11.h>` and libwpactrl-2.11, found explicitly by CMake, with
   a static archive preferred.
 - `project(VERSION)` is the single version source, used by the startup log line and `-h`.

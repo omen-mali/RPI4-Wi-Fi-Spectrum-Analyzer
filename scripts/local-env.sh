@@ -10,16 +10,29 @@
 # both.
 
 # Loads the settings file if there is one. A WSA_LOCAL_ENV naming a missing
-# file is an error; a missing default local.env isn't.
+# file is an error; a missing default local.env isn't. Sets WSA_LOCAL_ENV_DIR
+# to the file's directory (the repo root when there's no file), which
+# wsa_local_path() resolves relative paths against.
 wsa_load_local_env() {
     local file="${WSA_LOCAL_ENV:-$REPO/local.env}"
+    WSA_LOCAL_ENV_DIR="$REPO"
     if [ -f "$file" ]; then
+        WSA_LOCAL_ENV_DIR="$(cd "$(dirname "$file")" && pwd)"
         # shellcheck source=/dev/null
         . "$file"
     elif [ -n "${WSA_LOCAL_ENV:-}" ]; then
         echo "error: WSA_LOCAL_ENV=$WSA_LOCAL_ENV doesn't exist" >&2
         exit 1
     fi
+}
+
+# Prints a path from the settings file as an absolute path: a relative one is
+# taken from the settings file's directory, so the file can sit next to it.
+wsa_local_path() {
+    case "$1" in
+        ''|/*) printf '%s\n' "$1" ;;
+        *)     printf '%s\n' "$WSA_LOCAL_ENV_DIR/$1" ;;
+    esac
 }
 
 # Sets PI to the Pi's user@host: the argument if non-empty, else WSA_PI.

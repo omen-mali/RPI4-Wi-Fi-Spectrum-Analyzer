@@ -94,10 +94,10 @@ static void test_regdomain_filters_channels(void)
 
 static void test_analyze_ignores_unknown_channels(void)
 {
-    /* Review Focus 3. The parser gives channel 0 for frequencies outside its
-       tables; 4940 (4.9 GHz) gets BAND_2_4_GHZ (freq < 5000) and 5955
-       (6 GHz) gets BAND_5_GHZ. Neither may count as an AP on a channel, and
-       neither may change any channel's score. */
+    /* The parser gives channel 0 for frequencies outside its tables: 4940
+       (4.9 GHz) gets BAND_2_4_GHZ (freq < 5000) and 5955 (6 GHz) gets
+       BAND_5_GHZ. Neither may count as an AP on a channel, and neither may
+       change any channel's score. */
     scan_buffer_t base, s;
     analysis_result_t want, got;
     memset(&base, 0, sizeof(base));
@@ -124,8 +124,8 @@ static void test_analyze_ignores_unknown_channels(void)
 
 static void test_golden_basic_scan(void)
 {
-    /* Characterization: pinned 2026-11-23 from the current code; change only
-       with an intended scoring change. */
+    /* Characterization values pinned 2026-11-23, change them only with an
+       intended scoring change. */
     static const struct { uint8_t ch; double score; } want[] = {
         { 1, 32.183907 }, { 3, 56.0 }, { 6, 27.968750 },
         { 11, 40.454544 }, { 36, 30.535715 }, { 149, 30.410959 },

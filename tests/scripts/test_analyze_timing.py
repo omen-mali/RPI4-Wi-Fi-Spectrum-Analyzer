@@ -13,12 +13,14 @@ EXPECTED = os.path.join(ROOT, "tests", "fixtures", "timing", "smoke.expected.jso
 
 
 def run(*args):
+    """Run analyze-timing.py with args and return its stdout."""
     return subprocess.run([sys.executable, SCRIPT, *args], check=True,
                           capture_output=True, text=True).stdout
 
 
 class AnalyzeTimingTest(unittest.TestCase):
     def assert_close(self, got, want, path="$"):
+        """Assert got equals want (floats to 3 places), naming the JSON path that differs."""
         if isinstance(want, dict):
             self.assertIsInstance(got, dict, path)
             self.assertEqual(sorted(got), sorted(want), path)

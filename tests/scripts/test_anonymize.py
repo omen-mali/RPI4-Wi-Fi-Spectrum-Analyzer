@@ -21,6 +21,7 @@ REAL_SCAN = (
 
 
 def run(mode, text):
+    """Run anonymize.py in mode on text (through temp files) and return its output."""
     with tempfile.TemporaryDirectory() as d:
         src, dst = os.path.join(d, "in"), os.path.join(d, "out")
         with open(src, "w", newline="") as f:
@@ -31,6 +32,7 @@ def run(mode, text):
 
 
 def data_rows(text):
+    """The non-empty rows of scan text, without the header line."""
     return [l for l in text.split("\n")[1:] if l]
 
 

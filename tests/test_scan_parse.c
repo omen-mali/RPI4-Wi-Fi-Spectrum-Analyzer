@@ -89,8 +89,8 @@ static int freq_in_tables(uint16_t f)
 
 static void test_parse_truncated_4096(void)
 {
-    /* Review Focus 1: a reply cut at the server's 4096-byte buffer (4095
-       bytes + NUL) in the middle of a row. */
+    /* A reply cut at the server's 4096-byte buffer (4095 bytes + NUL) in
+       the middle of a row. */
     reply_t r;
     load(&r, "truncated-4096.txt");
     CHECK_EQ_INT(strlen(r.text), 4095);
@@ -113,8 +113,8 @@ static void test_parse_truncated_4096(void)
 
 static void test_parse_escaped_and_long_ssid(void)
 {
-    /* Review Focus 2: wpa_supplicant escapes tabs and non-ASCII bytes in the
-       SSID column as text; those must stay one field. */
+    /* wpa_supplicant escapes tabs and non-ASCII bytes in the SSID column
+       as text, those must stay one field. */
     size_t n = parse_fixture("escaped.txt", MAX_SCAN_RESULTS);
     CHECK_EQ_INT(n, 4);
     CHECK_STR(results[0].ssid, "a\\tb");

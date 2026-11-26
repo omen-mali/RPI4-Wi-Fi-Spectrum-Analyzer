@@ -8,8 +8,8 @@
 # On macOS it re-runs itself inside the linux/amd64 build image
 # (docker/Containerfile), without the QNX SDP: the host build needs
 # clock_nanosleep, which macOS lacks. Each compiler/sanitizer pair gets its
-# own build directory, build/host-<cc>-<san>. tsan is Linux-only, it can't
-# run under Rosetta.
+# own build directory, build/host-<cc>-<san>. tsan requires native x86-64
+# Linux (see below).
 #
 # Environment overrides (macOS only):
 #   CONTAINER_RUNTIME  container | docker     (default: auto-detect)

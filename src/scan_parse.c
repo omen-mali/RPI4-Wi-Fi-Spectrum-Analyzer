@@ -24,7 +24,7 @@
 #include <string.h>
 
 /* =========================================================================
- * Internal Helper: Frequency-to-Channel Conversion
+ * Frequency-to-Channel Conversion
  * ========================================================================= */
 
 /**
@@ -59,7 +59,7 @@ uint8_t scan_freq_to_channel(uint16_t freq_mhz)
  * @brief Determine which band a frequency belongs to.
  *
  * @param freq_mhz  Center frequency in MHz.
- * @return BAND_2_4_GHZ, BAND_5_GHZ, or BAND_2_4_GHZ as a fallback.
+ * @return BAND_5_GHZ for 5000 MHz and above, otherwise BAND_2_4_GHZ.
  */
 wifi_band_t scan_freq_to_band(uint16_t freq_mhz)
 {
@@ -70,7 +70,7 @@ wifi_band_t scan_freq_to_band(uint16_t freq_mhz)
 }
 
 /* =========================================================================
- * Internal Helper: Parse SCAN_RESULTS Response
+ * SCAN_RESULTS Parsing
  * ========================================================================= */
 
 /**
@@ -111,7 +111,8 @@ static char *next_field(char **cursor, char delim)
  *
  * The response is tokenized IN PLACE (it is modified), so no allocation
  * happens on this real-time path. Lines that are missing the bssid,
- * frequency or signal field, or have an unparseable frequency, are skipped.
+ * frequency or signal field, or have an unparseable frequency or signal
+ * level, are skipped.
  * An empty or missing SSID (hidden network) gives an empty string.
  *
  * @param response     Mutable SCAN_RESULTS text (header line + rows).

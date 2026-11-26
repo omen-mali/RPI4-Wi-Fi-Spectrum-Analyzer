@@ -33,6 +33,7 @@ class SmokeCheckTest(unittest.TestCase):
         return path
 
     def check(self, path, *args):
+        """Run smoke-check.py on path with args."""
         p = subprocess.run([sys.executable, SCRIPT, *args, path],
                            capture_output=True, text=True)
         return p.returncode, p.stdout.strip()

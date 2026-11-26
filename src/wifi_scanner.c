@@ -45,9 +45,8 @@
  * SCAN_RESULTS
  * =========================================================================
  *
- *   The SCAN_RESULTS reply (a header line plus one tab-separated row per
- *   AP) is parsed by scan_parse_results(). See scan_parse.c for the 
- *   SCAN_RESULTS format.
+ *   The SCAN_RESULTS reply is parsed by scan_parse_results(). scan_parse.c
+ *   documents its format.
  *
  * =========================================================================
  */
@@ -648,12 +647,8 @@ void *wifi_scanner_run(void *arg)
             int             rc;
             int64_t         lateness_ns;
 
-            /*
-             * Advance the deadline by exactly one period from the previous
-             * deadline (not from "now"), so per-cycle work never shifts the
-             * schedule. If the cycle overran, skip whole slots to stay
-             * phase-aligned instead of firing back-to-back to catch up.
-             */
+            /* Next slot on the fixed grid; schedule_advance() skips whole
+               slots after an overrun. */
             scanner->cycles++;
 
             clock_gettime(CLOCK_MONOTONIC, &now);

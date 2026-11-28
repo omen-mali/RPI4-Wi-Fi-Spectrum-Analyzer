@@ -15,6 +15,9 @@
 #        cmake --build .
 #
 # The output binary "wifi_spectrum_analyzer" is deployed to the Raspberry Pi.
+#
+# Host unit tests (Linux): any configure without the QNX toolchain builds
+# only the tests, e.g. cmake -S . -B build/host, or use scripts/host-test.sh.
 # =============================================================================
 
 cmake_minimum_required(VERSION 3.20)
@@ -148,14 +151,8 @@ if(CMAKE_SYSTEM_NAME STREQUAL "QNX")
 
 else()
     # Host build: unit tests only. The QNX executable isn't built here.
-    option(WIFI_HOST_TESTS "Build host unit tests" OFF)
     # C11 with extensions off hides POSIX declarations on glibc.
     target_compile_definitions(wsa_core PUBLIC _POSIX_C_SOURCE=200809L)
-    if(WIFI_HOST_TESTS)
-        enable_testing()
-        add_subdirectory(tests)
-    else()
-        message(FATAL_ERROR
-            "Non-QNX builds are test-only: pass -DWIFI_HOST_TESTS=ON")
-    endif()
+    enable_testing()
+    add_subdirectory(tests)
 endif()

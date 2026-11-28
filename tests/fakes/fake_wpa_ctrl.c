@@ -4,6 +4,7 @@
  */
 
 #include "fake_wpa_ctrl.h"
+#include "schedule.h"
 
 #include <errno.h>
 #include <pthread.h>
@@ -39,14 +40,13 @@ static count_t counts[MAX_COUNTS];
 static char   *scan_event;
 static int     scan_event_set;   /* 0: use the default */
 static int     break_next_pending;
-static int     fail_opens_left;
 static int     fail_open_at_k;   /* countdown; the open that takes it to 0 fails */
-static int     open_now;
 
 static const char *DEFAULT_SCAN_EVENT = "<3>CTRL-EVENT-SCAN-RESULTS ";
 
 /* --- internals (lock held) ------------------------------------------------ */
 
+/** Queue a copy of @p ev on @p c and make its descriptor readable. Dropped when full. */
 static void queue_event(struct wpa_ctrl *c, const char *ev)
 {
     if (c->count == MAX_EVENTS) {
@@ -60,6 +60,7 @@ static void queue_event(struct wpa_ctrl *c, const char *ev)
     }
 }
 
+/** Queue @p ev on every open, attached connection. */
 static void queue_event_all(const char *ev)
 {
     for (int i = 0; i < MAX_CONNS; i++) {
@@ -69,6 +70,7 @@ static void queue_event_all(const char *ev)
     }
 }
 
+/** Free @p c's queued events, close its pipe and mark the slot free. */
 static void close_conn(struct wpa_ctrl *c)
 {
     for (int i = 0; i < c->count; i++) {
@@ -79,6 +81,8 @@ static void close_conn(struct wpa_ctrl *c)
     memset(c, 0, sizeof(*c));
 }
 
+/** Count one request of @p cmd and wake fake_wpa_wait_calls(). Commands
+    beyond the first MAX_COUNTS distinct ones aren't counted. */
 static void count_call(const char *cmd)
 {
     for (int i = 0; i < MAX_COUNTS; i++) {
@@ -93,6 +97,7 @@ static void count_call(const char *cmd)
     }
 }
 
+/** How many times @p cmd was requested since the last reset. */
 static int get_count(const char *cmd)
 {
     for (int i = 0; i < MAX_COUNTS && counts[i].cmd[0]; i++) {
@@ -122,9 +127,7 @@ void fake_wpa_reset(void)
     scan_event = NULL;
     scan_event_set = 0;
     break_next_pending = 0;
-    fail_opens_left = 0;
     fail_open_at_k = 0;
-    open_now = 0;
     pthread_mutex_unlock(&lock);
 }
 
@@ -168,24 +171,10 @@ void fake_wpa_set_scan_event(const char *event_or_null)
     pthread_mutex_unlock(&lock);
 }
 
-void fake_wpa_push_event(const char *event)
-{
-    pthread_mutex_lock(&lock);
-    queue_event_all(event);
-    pthread_mutex_unlock(&lock);
-}
-
 void fake_wpa_break_monitor(void)
 {
     pthread_mutex_lock(&lock);
     break_next_pending = 1;
-    pthread_mutex_unlock(&lock);
-}
-
-void fake_wpa_fail_opens(int n)
-{
-    pthread_mutex_lock(&lock);
-    fail_opens_left = n;
     pthread_mutex_unlock(&lock);
 }
 
@@ -198,8 +187,11 @@ void fake_wpa_fail_open_at(int k)
 
 int fake_wpa_open_count(void)
 {
+    int n = 0;
     pthread_mutex_lock(&lock);
-    int n = open_now;
+    for (int i = 0; i < MAX_CONNS; i++) {
+        n += conns[i].in_use;
+    }
     pthread_mutex_unlock(&lock);
     return n;
 }
@@ -216,12 +208,7 @@ int fake_wpa_wait_calls(const char *cmd, int n, int timeout_ms)
 {
     struct timespec deadline;
     clock_gettime(CLOCK_REALTIME, &deadline);
-    deadline.tv_sec  += timeout_ms / 1000;
-    deadline.tv_nsec += (long)(timeout_ms % 1000) * 1000000L;
-    if (deadline.tv_nsec >= 1000000000L) {
-        deadline.tv_sec++;
-        deadline.tv_nsec -= 1000000000L;
-    }
+    ts_add_ms(&deadline, (uint32_t)timeout_ms);
     pthread_mutex_lock(&lock);
     int rc = 0;
     while (get_count(cmd) < n && rc == 0) {
@@ -239,14 +226,7 @@ struct wpa_ctrl *wpa_ctrl_open(const char *ctrl_path)
     (void)ctrl_path;
     struct wpa_ctrl *c = NULL;
     pthread_mutex_lock(&lock);
-    int fail = 0;
-    if (fail_opens_left > 0) {
-        fail_opens_left--;
-        fail = 1;
-    }
-    if (fail_open_at_k > 0 && --fail_open_at_k == 0) {
-        fail = 1;
-    }
+    int fail = fail_open_at_k > 0 && --fail_open_at_k == 0;
     for (int i = 0; !fail && i < MAX_CONNS; i++) {
         if (!conns[i].in_use) {
             if (pipe(conns[i].pipe_fd) != 0) {
@@ -254,7 +234,6 @@ struct wpa_ctrl *wpa_ctrl_open(const char *ctrl_path)
             }
             conns[i].in_use = 1;
             c = &conns[i];
-            open_now++;
             break;
         }
     }
@@ -273,7 +252,6 @@ void wpa_ctrl_close(struct wpa_ctrl *ctrl)
     pthread_mutex_lock(&lock);
     if (ctrl->in_use) {
         close_conn(ctrl);
-        open_now--;
     }
     pthread_mutex_unlock(&lock);
 }

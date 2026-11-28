@@ -10,6 +10,7 @@
 
 #include "fake_wpa_ctrl.h"
 #include "log_capture.h"
+#include "schedule.h"
 #include "test.h"
 #include "wifi_scanner.h"
 
@@ -30,15 +31,11 @@ typedef struct {
 
 static rig_t rig;
 
+/** Set @p t to @p ms from now on CLOCK_REALTIME (for pthread_cond_timedwait). */
 static void deadline_in(struct timespec *t, int ms)
 {
     clock_gettime(CLOCK_REALTIME, t);
-    t->tv_sec  += ms / 1000;
-    t->tv_nsec += (long)(ms % 1000) * 1000000L;
-    if (t->tv_nsec >= 1000000000L) {
-        t->tv_sec++;
-        t->tv_nsec -= 1000000000L;
-    }
+    ts_add_ms(t, (uint32_t)ms);
 }
 
 /** Init the scanner on a fresh rig; start its thread if @p run. */
@@ -73,6 +70,7 @@ static int wait_publish(int ms)
     return published ? 0 : -1;
 }
 
+/** Number of results the scanner has published into the rig's buffer. */
 static size_t published_count(void)
 {
     pthread_mutex_lock(&rig.mutex);
@@ -81,6 +79,7 @@ static size_t published_count(void)
     return n;
 }
 
+/** Stop the thread as main.c does (cancel, join), then shut the scanner down. */
 static void rig_stop(void)
 {
     if (rig.started) {
@@ -170,10 +169,8 @@ static void test_broken_monitor_reattaches(void)
 {
     script_ok();
     log_capture_begin();
-    CHECK_EQ_INT(rig_start(0), 0);
-    fake_wpa_break_monitor();
-    rig.started = pthread_create(&rig.thread, NULL, wifi_scanner_run,
-                                 rig.scanner) == 0;
+    fake_wpa_break_monitor();                 /* init never calls pending */
+    CHECK_EQ_INT(rig_start(1), 0);
     CHECK_EQ_INT(wait_publish(2000), 0);
     CHECK_EQ_INT(published_count(), 8);
     CHECK_EQ_INT(fake_wpa_open_count(), 2);   /* old monitor closed, new one open */
@@ -205,7 +202,7 @@ static void test_init_fails_when_open_fails(void)
 
     fake_wpa_reset();
     log_capture_begin();
-    fake_wpa_fail_opens(1);                   /* control connection */
+    fake_wpa_fail_open_at(1);                 /* control connection */
     CHECK(wifi_scanner_init(CTRL_PATH, 1000, &buf, &m, &c) == NULL);
     CHECK_EQ_INT(fake_wpa_open_count(), 0);
 

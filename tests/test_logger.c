@@ -76,6 +76,7 @@ static void test_order_preserved(void)
 #define WRITERS 4
 #define LINES_PER_WRITER 10000
 
+/** Writer thread: log LINES_PER_WRITER numbered lines tagged with its id. */
 static void *burst(void *arg)
 {
     int id = (int)(long)arg;

@@ -30,6 +30,7 @@ static void load(reply_t *r, const char *name)
 
 static scan_result_t results[MAX_SCAN_RESULTS];
 
+/** Parse fixture @p name into results[] (pre-filled with garbage), return the count. */
 static size_t parse_fixture(const char *name, size_t max)
 {
     reply_t r;
@@ -82,11 +83,6 @@ static void test_parse_unknown_freq(void)
     CHECK_EQ_INT(scan_freq_to_channel(2472), 13);
 }
 
-static int freq_in_tables(uint16_t f)
-{
-    return (f >= 2412 && f <= 2484) || (f >= 5180 && f <= 5825);
-}
-
 static void test_parse_truncated_4096(void)
 {
     /* A reply cut at the server's 4096-byte buffer (4095 bytes + NUL) in
@@ -106,7 +102,7 @@ static void test_parse_truncated_4096(void)
     CHECK(n == complete || n == complete + 1);    /* partial row: skipped or whole-looking */
     for (size_t i = 0; i < n; i++) {
         CHECK_EQ_INT(strnlen(results[i].bssid, sizeof(results[i].bssid)), 17);
-        CHECK(freq_in_tables(results[i].freq_mhz));
+        CHECK(results[i].channel != 0);           /* a known frequency */
         CHECK(memchr(results[i].ssid, '\0', sizeof(results[i].ssid)) != NULL);
     }
 }

@@ -36,6 +36,16 @@ static int find_channel(const analysis_result_t *r, uint8_t ch)
     return -1;
 }
 
+/** Sum of ap_count over every channel in r. */
+static long total_aps(const analysis_result_t *r)
+{
+    long aps = 0;
+    for (size_t i = 0; i < r->channel_count; i++) {
+        aps += r->channels[i].ap_count;
+    }
+    return aps;
+}
+
 /*
  * The same 8 APs as tests/fixtures/scan/basic.txt, in the same order.
  * Keep the two in step.
@@ -109,12 +119,10 @@ static void test_analyze_ignores_unknown_channels(void)
     channel_analyzer_analyze(regdomain_lookup("CA", NULL), &base, &want);
     channel_analyzer_analyze(regdomain_lookup("CA", NULL), &s, &got);
 
-    long aps = 0;
     for (size_t i = 0; i < got.channel_count; i++) {
-        aps += got.channels[i].ap_count;
         CHECK(got.channels[i].channel_number != 0);
     }
-    CHECK_EQ_INT(aps, 1);
+    CHECK_EQ_INT(total_aps(&got), 1);
     CHECK_EQ_INT(got.channel_count, want.channel_count);
     for (size_t i = 0; i < got.channel_count && i < want.channel_count; i++) {
         CHECK_NEAR(got.channels[i].score, want.channels[i].score, 1e-6);
@@ -146,11 +154,7 @@ static void test_golden_basic_scan(void)
             CHECK_NEAR(r.channels[idx].score, want[i].score, 1e-4);
         }
     }
-    int aps = 0;
-    for (size_t i = 0; i < r.channel_count; i++) {
-        aps += r.channels[i].ap_count;
-    }
-    CHECK_EQ_INT(aps, 8);
+    CHECK_EQ_INT(total_aps(&r), 8);
 }
 
 int main(void)

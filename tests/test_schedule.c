@@ -6,6 +6,7 @@
 #include "schedule.h"
 #include "test.h"
 
+/** A timespec of @p s seconds and @p ns nanoseconds. */
 static struct timespec ts(time_t s, long ns)
 {
     struct timespec t;

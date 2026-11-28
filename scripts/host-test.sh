@@ -70,7 +70,6 @@ fi
 BUILD="build/host-$CC_NAME-$SAN"
 cd "$REPO"
 cmake -S . -B "$BUILD" -G Ninja \
-      -DWIFI_HOST_TESTS=ON \
       -DCMAKE_BUILD_TYPE=Debug \
       -DCMAKE_C_COMPILER="$CC_NAME" \
       -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \

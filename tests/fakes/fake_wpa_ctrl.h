@@ -30,14 +30,8 @@ void fake_wpa_set_reply_file(const char *cmd, const char *fixture_name);
  */
 void fake_wpa_set_scan_event(const char *event_or_null);
 
-/** Queue @p event on every attached connection now. */
-void fake_wpa_push_event(const char *event);
-
 /** The next wpa_ctrl_pending() on an attached connection returns -1. */
 void fake_wpa_break_monitor(void);
-
-/** The next @p n wpa_ctrl_open() calls return NULL. */
-void fake_wpa_fail_opens(int n);
 
 /** Only the @p k-th wpa_ctrl_open() from now (1-based) returns NULL. */
 void fake_wpa_fail_open_at(int k);

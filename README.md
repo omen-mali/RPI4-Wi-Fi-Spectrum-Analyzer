@@ -222,7 +222,7 @@ Must run from a clean checkout of a commit that's on GitHub (it refuses otherwis
 | --- | --- | --- |
 | `host` | every hosted job passed | at least one hosted job failed |
 | `qnx/build` | `scripts/qnx-build.sh clean` built the binary (size and warning count in the description) | `ci-local.sh` was interrupted |
-| `pi/smoke` | the app ran on the Pi with no ERROR lines, a clean shutdown, enough scan cycles, wake latency p99 under the limit, and at least one AP (`scripts/smoke-check.py`) | the Pi was unreachable or the run timed out, which isn't a failed build |
+| `pi/smoke` | the app ran on the Pi with no ERROR lines, a clean shutdown, enough completed scans at the period it logged, logged wake latency with p99 under the limit, and at least one AP (`scripts/smoke-check.py`) | the Pi was unreachable or the run timed out, which isn't a failed build |
 
 The full report (build output, the Pi's logs, the verdict) goes to `build/ci/<sha>/`. Nothing under
 `build/` is committed.

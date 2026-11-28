@@ -1,5 +1,8 @@
 {
   "cycles": 18,
+  "completed": 18,
+  "wake_samples": 17,
+  "clean_stop": false,
   "period_ms": 10000.0,
   "overruns": 0,
   "warn": 1,

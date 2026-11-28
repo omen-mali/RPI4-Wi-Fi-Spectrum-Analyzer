@@ -27,8 +27,12 @@ Metrics:
   publish->analysis E - D   (cond-var hand-off to the RR analyzer thread)
 
 --json prints one JSON object keyed by log path instead of the tables. Each
-value has cycles, period_ms (null for relative-sleep builds), overruns, warn,
-error, max_aps (largest N in "Scan complete: N APs found", or 0) and metrics:
+value has cycles (SCAN requests, A), completed (published scans, D),
+wake_samples (logged "Wake lateness" lines; 0 means wake latency is the
+relative-sleep proxy), clean_stop (main.c logged its "stopped
+(exit_code=0)" banner), period_ms (null for relative-sleep builds),
+overruns, warn, error, max_aps (largest N in "Scan complete: N APs found",
+or 0) and metrics:
 {name: {n, mean, std, min, p50, p99, max} or null}, in milliseconds, with
 the same names and values as the tables.
 """
@@ -41,17 +45,19 @@ from datetime import datetime
 LEGACY_SLEEP_MS = 5000.0   # relative sleep after each cycle (pre-fixed-rate builds)
 
 LINE = re.compile(r"^\[(\d{4}-\d\d-\d\d \d\d:\d\d:\d\d\.\d{3})\] \[(\w+)\] \[[^\]]+\] (.*)$")
+APS = re.compile(r"Scan complete: (\d+) APs found")
 PATTERNS = {
     "A": re.compile(r"Sending wpa_supplicant command: SCAN$"),
     "B": re.compile(r"SCAN (accepted|busy)"),
     "C": re.compile(r"CTRL-EVENT-SCAN-RESULTS"),
-    "D": re.compile(r"Scan complete: \d+ APs found"),
+    "D": APS,
     "E": re.compile(r"Analysis complete:"),
 }
 WAKE = re.compile(r"Wake lateness: (-?\d+) us")
 PERIOD = re.compile(r"fixed-rate, period=(\d+) ms")
 OVERRUN = re.compile(r"overran its \d+ ms period: skipped (\d+)")
-APS = re.compile(r"Scan complete: (\d+) APs found")
+# main.c's whole shutdown banner, so text echoed into other lines can't match.
+CLEAN_STOP = "=== Wi-Fi Spectrum Analyzer stopped (exit_code=0) ==="
 
 
 def ts_ms(stamp):
@@ -64,6 +70,7 @@ def parse(path):
     events["period_ms"] = None
     events["overruns"] = 0
     events["max_aps"] = 0
+    events["clean_stop"] = False
     levels = {"WARN": [], "ERROR": []}
     with open(path, errors="replace") as fh:
         for raw in fh:
@@ -84,6 +91,8 @@ def parse(path):
                 events["overruns"] += int(o.group(1))
             elif (a := APS.search(msg)):
                 events["max_aps"] = max(events["max_aps"], int(a.group(1)))
+            elif msg.rstrip() == CLEAN_STOP:
+                events["clean_stop"] = True
     return events, levels
 
 
@@ -143,6 +152,9 @@ def summary(path):
     events, levels = parse(path)
     return {
         "cycles": len(events["A"]),
+        "completed": len(events["D"]),
+        "wake_samples": len(events["wake_us"]),
+        "clean_stop": events["clean_stop"],
         "period_ms": events["period_ms"],
         "overruns": events["overruns"],
         "warn": len(levels["WARN"]),

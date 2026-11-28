@@ -231,9 +231,8 @@ if [ "$NO_PI" = 0 ]; then
         post pi/smoke error "Pi run timed out after ${CI_PI_TIMEOUT}s"
         exit 1
     fi
-    python3 scripts/analyze-timing.py --json "$OUT/pi/smoke.log" >"$OUT/smoke.json" 2>/dev/null || true
-    verdict="$(python3 scripts/smoke-check.py --seconds "$RUN_SECS" --period-ms "$CI_PERIOD_MS" \
-        --p99-max-ms "$CI_WAKE_P99_MAX_MS" --min-aps "$CI_MIN_APS" "$OUT/pi/smoke.log")" || true
+    verdict="$(python3 scripts/smoke-check.py --seconds "$RUN_SECS" --p99-max-ms "$CI_WAKE_P99_MAX_MS" \
+        --min-aps "$CI_MIN_APS" --json-out "$OUT/smoke.json" "$OUT/pi/smoke.log")" || true
     echo "$verdict" >"$OUT/smoke-verdict.txt"
     case "$verdict" in
         "PASS "*) post pi/smoke success "${verdict#PASS }"; SMOKE=success ;;
